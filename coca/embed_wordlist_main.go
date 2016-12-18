@@ -7,7 +7,7 @@ import (
 	"encoding/csv"
 	"flag"
 	"fmt"
-	"github.com/sethpollen/sbp_linux_config/sbpgo/games/words"
+	"github.com/sethpollen/dorkalonius"
 	"io"
 	"log"
 	"os"
@@ -22,7 +22,7 @@ var destFile = flag.String("dest_file", "",
 	"Go file to write")
 
 // Reads in the list of words from the file.
-func ReadWordList(path string) (*words.WordList, error) {
+func ReadWordList(path string) (*dorkalonius.WordList, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -35,7 +35,7 @@ func ReadWordList(path string) (*words.WordList, error) {
 	// Our raw data may contain 2 lines with the same word if that word can be
 	// used as more than one part of speech. We just add the occurrence counts
 	// of these lines together.
-	var wordSet = make(map[string]*words.Word)
+	var wordSet = make(map[string]*dorkalonius.Word)
 
 	for i := 0; true; i++ {
 		record, err := reader.Read()
@@ -72,12 +72,12 @@ func ReadWordList(path string) (*words.WordList, error) {
 				existing.PartsOfSpeech += partOfSpeech
 			}
 		} else {
-			wordSet[word] = &words.Word{word, occurrences, partOfSpeech}
+			wordSet[word] = &dorkalonius.Word{word, occurrences, partOfSpeech}
 		}
 	}
 
 	// Convert the map to a WordList object.
-	wordList := words.NewWordList()
+	wordList := dorkalonius.NewWordList()
 	for _, word := range wordSet {
 		wordList.AddWord(*word)
 	}
@@ -109,10 +109,10 @@ func main() {
 	var header = `
     package coca
 
-    import "github.com/sethpollen/sbp_linux_config/sbpgo/games/words"
+    import "github.com/sethpollen/dorkalonius"
 
-    func GetWordList() *words.WordList {
-      return &words.WordList{[]words.Word{
+    func GetWordList() *dorkalonius.WordList {
+      return &dorkalonius.WordList{[]dorkalonius.Word{
     `
 	var footer = fmt.Sprintf(`
       }, %d}
@@ -121,7 +121,7 @@ func main() {
 
 	out.Write([]byte(header))
 	for _, word := range list.Words {
-		out.Write([]byte(fmt.Sprintf("words.Word{%q, %d, %q},\n",
+		out.Write([]byte(fmt.Sprintf("dorkalonius.Word{%q, %d, %q},\n",
 			word.Word, word.Occurrences, word.PartsOfSpeech)))
 	}
 	out.Write([]byte(footer))

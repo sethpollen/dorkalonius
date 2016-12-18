@@ -3,9 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/sethpollen/sbp_linux_config/sbpgo"
-	"github.com/sethpollen/sbp_linux_config/sbpgo/games/words"
-	"github.com/sethpollen/sbp_linux_config/sbpgo/games/words/coca"
+  "github.com/sethpollen/dorkalonius"
+  "github.com/sethpollen/dorkalonius/coca"
 	"log"
 	"math/rand"
 	"os"
@@ -38,7 +37,7 @@ func main() {
 		log.Fatalln("--sample_size must be nonnegative")
 	}
 
-	sampler := words.NewIndex(coca.GetWordList())
+	sampler := dorkalonius.NewIndex(coca.GetWordList())
 	var err error
 
 	if *outputDir == "" {
@@ -50,7 +49,7 @@ func main() {
 		fmt.Println()
 
 		if *duration > 0 {
-			sbpgo.VerboseSleep(*duration, true)
+			dorkalonius.VerboseSleep(*duration, true)
 			fmt.Println("TIME'S UP")
 			fmt.Println()
 		}
@@ -78,7 +77,7 @@ func main() {
 }
 
 // Generates a complete game and writes it to 'out'.
-func generateGame(sampler *words.Index, out *os.File) error {
+func generateGame(sampler *dorkalonius.Index, out *os.File) error {
 	// Use a value of 1000000 here to get more interesting adjectives.
 	adjective := sampler.SamplePartOfSpeech(1, 'j', 1000000)
 	// The least frequent words in our top-5000 corpus occur about 5000 times, so
@@ -104,7 +103,7 @@ func generateGame(sampler *words.Index, out *os.File) error {
 }
 
 // Pretty-print words in columns to 'out'.
-func printWords(wordList *words.WordList, out *os.File) error {
+func printWords(wordList *dorkalonius.WordList, out *os.File) error {
 	screenWidth := *outputWidth
 	if screenWidth < 1 {
 		screenWidth = 1

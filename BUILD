@@ -1,10 +1,14 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+load("@io_bazel_rules_go//go:def.bzl",
+     "go_prefix", "go_binary", "go_library", "go_test")
+
+go_prefix("github.com/sethpollen/dorkalonius")
 
 go_library(
     name = "go_default_library",
     srcs = [
         "sampler.go",
         "word_list.go",
+        "sleep.go",
     ],
     visibility = ["//visibility:public"],
 )

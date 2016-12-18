@@ -1,7 +1,7 @@
-package words_test
+package dorkalonius_test
 
 import (
-	"github.com/sethpollen/sbp_linux_config/sbpgo/games/words/coca"
+	"github.com/sethpollen/dorkalonius/coca"
 	"testing"
 )
 

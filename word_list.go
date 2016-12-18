@@ -1,4 +1,4 @@
-package words
+package dorkalonius
 
 type Word struct {
 	Word        string
