@@ -11,6 +11,7 @@ go_prefix("github.com/sethpollen/dorkalonius")
 go_library(
     name = "go_default_library",
     srcs = [
+        "go_embed_encoder.go",
         "sampler.go",
         "sleep.go",
         "word_list.go",
@@ -33,6 +34,14 @@ go_test(
     deps = [
         ":go_default_library",
         "//coca:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_embed_encoder_test",
+    srcs = ["go_embed_encoder_test.go"],
+    deps = [
+        ":go_default_library",
     ],
 )
 

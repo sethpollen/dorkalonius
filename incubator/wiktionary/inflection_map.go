@@ -7,8 +7,8 @@ package wiktionary
 // base form to choose among multiple base forms.
 
 type InflectionMap struct {
-  baseWords       map[string]bool
-  inflectedToBase map[string]string
+  BaseWords       map[string]bool
+  InflectedToBase map[string]string
 }
 
 func NewInflectionMap() *InflectionMap {
@@ -16,27 +16,27 @@ func NewInflectionMap() *InflectionMap {
 }
 
 func (self *InflectionMap) NumBaseWords() int {
-  return len(self.baseWords)
+  return len(self.BaseWords)
 }
 
 // Adds a baseWord, inflected pair to the map.
 func (self *InflectionMap) Add(baseWord, inflected string) {
-  self.baseWords[baseWord] = true
-  existingBaseWord, ok := self.inflectedToBase[inflected]
+  self.BaseWords[baseWord] = true
+  existingBaseWord, ok := self.InflectedToBase[inflected]
   if ok && len(existingBaseWord) <= len(baseWord) {
     // The existing base word is shorter, so just leave it.
     return
   }
-  self.inflectedToBase[inflected] = baseWord
+  self.InflectedToBase[inflected] = baseWord
 }
 
 // Gets the base word for the given inflected form.
 func (self *InflectionMap) GetBaseWord(inflected string) string {
   // If the inflectedForm is itself a base word, do nothing.
-  if self.baseWords[inflected] {
+  if self.BaseWords[inflected] {
     return inflected
   }
-  baseWord, ok := self.inflectedToBase[inflected]
+  baseWord, ok := self.InflectedToBase[inflected]
   if ok {
     return baseWord
   }
