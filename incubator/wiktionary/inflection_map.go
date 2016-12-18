@@ -15,6 +15,10 @@ func NewInflectionMap() *InflectionMap {
   return &InflectionMap{make(map[string]bool), make(map[string]string)}
 }
 
+func (self *InflectionMap) NumBaseWords() int {
+  return len(self.baseWords)
+}
+
 // Adds a baseWord, inflected pair to the map.
 func (self *InflectionMap) Add(baseWord, inflected string) {
   self.baseWords[baseWord] = true

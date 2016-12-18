@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_binary")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_binary", "go_test")
 
 go_binary(
     name = "embed_inflections_main",
@@ -21,4 +21,10 @@ go_library(
     srcs = [":embed_inflections"],
     visibility = ["//visibility:public"],
     deps = ["//incubator/wiktionary:go_default_library"],
+)
+
+go_test(
+    name = "embed_test",
+    srcs = ["embed_test.go"],
+    deps = [":go_default_library"],
 )
