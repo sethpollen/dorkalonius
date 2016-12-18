@@ -6,7 +6,7 @@ package main
 import (
 	"encoding/csv"
 	"flag"
-	"github.com/sethpollen/sbp_linux_config/sbpgo/games/words/wiktionary/dump"
+	"github.com/sethpollen/dorkalonius/incubator/wiktionary/dump"
 	"log"
 	"os"
 	"regexp"

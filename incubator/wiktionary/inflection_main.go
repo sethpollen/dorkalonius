@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/csv"
 	"flag"
-	"github.com/sethpollen/sbp_linux_config/sbpgo/games/words/wiktionary"
+	"github.com/sethpollen/dorkalonius/incubator/wiktionary"
 	"io"
 	"log"
 	"os"
@@ -91,11 +91,8 @@ func worker(requestChan <-chan InflectionRequest,
 				request.Line, strings.Join(request.CsvRecord, ", "), err)
 		}
 
-		if len(expanded) == 0 {
-			// There are no inflections to converge to the base form.
-			continue
-		}
-
+		// Note that 'expanded' may be empty if the base word has no other
+		// forms.
 		responseChan <- &InflectionResponse{
 			request.Line, posEnum, title, expanded, false}
 	}
@@ -149,6 +146,7 @@ func main() {
 	}
 
 	// Collect and print the results in the main thread.
+	// TODO: baseWords := make(map[BaseWord]bool)
 	inflectionToBaseWord := make(map[string]*BaseWord)
 
 	// Count the number of nils; this indicates how many workers have

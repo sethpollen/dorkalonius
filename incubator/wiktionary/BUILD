@@ -22,6 +22,6 @@ go_test(
 go_binary(
     name = "inflection_main",
     srcs = ["inflection_main.go"],
-    data = ["//experimental/wiktionary/dump/data"],
+    data = ["//incubator/wiktionary/dump/data"],
     deps = [":go_default_library"],
 )
