@@ -45,15 +45,15 @@ func main() {
 		"\\{\\{(" + strings.Replace(*templateNames, ",", "|", -1) +
 			")[^\\}]*\\}\\}")
 
-  // Some invocations of our desired templates contain a nested invocation
-  // of the "l" (link) template. This regex helps remove it.
-  lLinkRe := regexp.MustCompile("\\{\\{l\\|en\\|([^\\|\\}]*)\\}\\}")
-  wLinkRe := regexp.MustCompile("\\{\\{w\\|([^\\|\\}]*)\\}\\}")
-  w2LinkRe := regexp.MustCompile("\\{\\{w\\|[^\\|\\}]*\\|([^\\|\\}]*)\\}\\}")
-  
-  // Some other nested invocations are hard to handle and only occur on
-  // very strange terms, so we just drop words which use them.
-  vernRe := regexp.MustCompile("\\{\\{vern\\|")
+	// Some invocations of our desired templates contain a nested invocation
+	// of the "l" (link) template. This regex helps remove it.
+	lLinkRe := regexp.MustCompile("\\{\\{l\\|en\\|([^\\|\\}]*)\\}\\}")
+	wLinkRe := regexp.MustCompile("\\{\\{w\\|([^\\|\\}]*)\\}\\}")
+	w2LinkRe := regexp.MustCompile("\\{\\{w\\|[^\\|\\}]*\\|([^\\|\\}]*)\\}\\}")
+
+	// Some other nested invocations are hard to handle and only occur on
+	// very strange terms, so we just drop words which use them.
+	vernRe := regexp.MustCompile("\\{\\{vern\\|")
 
 	dump.ReadDump(inFile, func(page *dump.Page) {
 		for _, prefix := range []string{
@@ -63,17 +63,17 @@ func main() {
 				return
 			}
 		}
-		
+
 		var text string = page.Text
 		for _, re := range []*regexp.Regexp{lLinkRe, wLinkRe, w2LinkRe} {
-      text = re.ReplaceAllString(text, "$1")
-    }
+			text = re.ReplaceAllString(text, "$1")
+		}
 
 		for _, match := range invocationRe.FindAllString(text, -1) {
-      if vernRe.FindString(match) != "" {
-        continue
-      }
-      
+			if vernRe.FindString(match) != "" {
+				continue
+			}
+
 			err = csv.Write([]string{page.Title, match})
 			if err != nil {
 				log.Fatalln(err)

@@ -80,11 +80,11 @@ func PosName(pos int) string {
 // 'title' word.
 func (self *Inflector) ExpandInflections(
 	pos int, title string, args []string) ([]string, error) {
-  if title == "principl" {
-    // This is a very weird entry in Wiktionary. Just ignore it.
-    return nil, nil
-  }
-    
+	if title == "principl" {
+		// This is a very weird entry in Wiktionary. Just ignore it.
+		return nil, nil
+	}
+
 	var err error
 
 	var posStr string
@@ -160,9 +160,9 @@ func (self *Inflector) ExpandInflections(
 
 	var resultsList []string
 	for result, _ := range results {
-    if err = checkResult(result); err != nil {
-      return nil, err
-    }
+		if err = checkResult(result); err != nil {
+			return nil, err
+		}
 		resultsList = append(resultsList, result)
 	}
 	return resultsList, nil
@@ -196,12 +196,12 @@ func processLuaResult(key, value string) []string {
 }
 
 func checkResult(result string) error {
-  for r := range result {
-    switch r {
-      case '{', '}', '[', ']':
-        return fmt.Errorf(
-          "Got a result with MediaWiki template characters: %q", result)
-    }
-  }
-  return nil
+	for r := range result {
+		switch r {
+		case '{', '}', '[', ']':
+			return fmt.Errorf(
+				"Got a result with MediaWiki template characters: %q", result)
+		}
+	}
+	return nil
 }

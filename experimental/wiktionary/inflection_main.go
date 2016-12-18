@@ -28,7 +28,7 @@ type InflectionResponse struct {
 	Inflections []string
 	// Only set to true for highly irregular words. This is a hint that people
 	// might need to be told explicitly what the inflections are.
-	Irregular   bool
+	Irregular bool
 }
 
 // Method run by worker threads. Will send nil to 'responseChan' once it
@@ -55,11 +55,11 @@ func worker(requestChan <-chan InflectionRequest,
 		}
 
 		var invocation string = request.CsvRecord[1]
-		
-    if strings.Index(invocation, "highly irregular") >= 0 {
-      log.Fatalf("Cannot handle highly irregular entry: %q", invocation)
-    }
-		
+
+		if strings.Index(invocation, "highly irregular") >= 0 {
+			log.Fatalf("Cannot handle highly irregular entry: %q", invocation)
+		}
+
 		invocation = strings.TrimPrefix(invocation, "{{en-")
 		invocation = strings.TrimSuffix(invocation, "}}")
 		invocation = simpleLinkRe.ReplaceAllString(invocation, "$1")
@@ -85,19 +85,19 @@ func worker(requestChan <-chan InflectionRequest,
 
 		var args []string = invocationParts[1:]
 		expanded, err := inflector.ExpandInflections(
-      posEnum, title, args)
+			posEnum, title, args)
 		if err != nil {
 			log.Fatalf("Inflector failed on CSV line %d:\n%s\n%s",
-                 request.Line, strings.Join(request.CsvRecord, ", "), err)
+				request.Line, strings.Join(request.CsvRecord, ", "), err)
 		}
-		
+
 		if len(expanded) == 0 {
-      // There are no inflections to converge to the base form.
-      continue
-    }
+			// There are no inflections to converge to the base form.
+			continue
+		}
 
 		responseChan <- &InflectionResponse{
-      request.Line, posEnum, title, expanded, false}
+			request.Line, posEnum, title, expanded, false}
 	}
 	responseChan <- nil
 }
@@ -117,13 +117,13 @@ func main() {
 	for i := 0; i < concurrency; i++ {
 		go worker(requestChan, responseChan)
 	}
-	
+
 	// Manually insert an entry for the verb "be". This is the only page on the
 	// English Wiktionary that invokes the "highly irregular" cop-out.
 	responseChan <- &InflectionResponse{
-    0, wiktionary.Verb, "be",
-    []string{"am", "is", "are", "was", "were", "being", "beings", "been"},
-    true}
+		0, wiktionary.Verb, "be",
+		[]string{"am", "is", "are", "was", "were", "being", "beings", "been"},
+		true}
 
 	// Spawn another goroutine to read in the CSV file and distribute its lines
 	// to the workers.
@@ -142,11 +142,11 @@ func main() {
 		}
 		close(requestChan)
 	}()
-  
-  type BaseWord struct {
-    Word string
-    Irregular bool
-  }
+
+	type BaseWord struct {
+		Word      string
+		Irregular bool
+	}
 
 	// Collect and print the results in the main thread.
 	inflectionToBaseWord := make(map[string]*BaseWord)
@@ -160,18 +160,18 @@ func main() {
 			nils++
 			continue
 		}
-		
+
 		baseWord := BaseWord{response.Title, response.Irregular}
 		for _, inflection := range response.Inflections {
-      existingBaseWord, ok := inflectionToBaseWord[inflection]
-      if ok {
-        if len(existingBaseWord.Word) <= len(baseWord.Word) {
-          // We prefer the existing base word, as it's shorter.
-          continue
-        }
-      }
-      inflectionToBaseWord[inflection] = &baseWord
-    }
+			existingBaseWord, ok := inflectionToBaseWord[inflection]
+			if ok {
+				if len(existingBaseWord.Word) <= len(baseWord.Word) {
+					// We prefer the existing base word, as it's shorter.
+					continue
+				}
+			}
+			inflectionToBaseWord[inflection] = &baseWord
+		}
 
 		// TODO:
 	}

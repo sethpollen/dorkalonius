@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-  "github.com/sethpollen/dorkalonius"
-  "github.com/sethpollen/dorkalonius/coca"
+	"github.com/sethpollen/dorkalonius"
+	"github.com/sethpollen/dorkalonius/coca"
 	"log"
 	"math/rand"
 	"os"
