@@ -50,7 +50,7 @@ func NewInflector() (*Inflector, error) {
 	// directories. In binaries, the Lua files may be found at
 	// ./sbpgo/games/words/wiktionary. In unit tests, the Lua files are in the
 	// current directory (.).
-	for _, dir := range []string{".", "./sbpgo/games/words/wiktionary"} {
+	for _, dir := range []string{".", "./incubator/wiktionary"} {
 		found, err := checkForLuaScript(dir)
 		if err != nil {
 			return nil, err

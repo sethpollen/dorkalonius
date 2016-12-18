@@ -9,6 +9,8 @@ go_library(
     name = "go_default_library",
     srcs = [
         "inflection.go",
+        "inflection_xml.go",
+        "page_extractor.go",
     ],
     data = [":lua_scripts"],
 )
@@ -20,8 +22,20 @@ go_test(
 )
 
 go_binary(
+    name = "page_extractor_main",
+    srcs = ["page_extractor_main.go"],
+    deps = [":go_default_library"],
+)
+
+go_binary(
+    name = "template_extractor_main",
+    srcs = ["template_extractor_main.go"],
+    deps = [":go_default_library"],
+)
+
+go_binary(
     name = "inflection_main",
     srcs = ["inflection_main.go"],
-    data = ["//incubator/wiktionary/dump/data"],
+    data = ["//incubator/wiktionary/input_data"],
     deps = [":go_default_library"],
 )

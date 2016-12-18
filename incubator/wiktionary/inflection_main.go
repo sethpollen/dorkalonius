@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/csv"
+	"encoding/xml"
 	"flag"
 	"github.com/sethpollen/dorkalonius/incubator/wiktionary"
 	"io"
@@ -11,9 +12,12 @@ import (
 	"strings"
 )
 
-var skipLines = flag.Int("skip_lines", 0, "Initial CSV lines to be skipped.")
+var skipLines = flag.Int("skip_lines", 0,
+	"Initial CSV lines to be skipped from input file.")
+var outputXmlFile = flag.String("output_file", "",
+	"Output XML file to write. See inflection_xml.go for the format.")
 
-const inputCsvFile = "./sbpgo/games/words/wiktionary/dump/data/en-templates.csv"
+const inputCsvFile = "./incubator/wiktionary/dump/data/en-templates.csv"
 const concurrency = 16
 
 // Argument/return types for the ExpandInflections call.
@@ -26,9 +30,6 @@ type InflectionResponse struct {
 	Pos         int
 	Title       string
 	Inflections []string
-	// Only set to true for highly irregular words. This is a hint that people
-	// might need to be told explicitly what the inflections are.
-	Irregular bool
 }
 
 // Method run by worker threads. Will send nil to 'responseChan' once it
@@ -94,19 +95,27 @@ func worker(requestChan <-chan InflectionRequest,
 		// Note that 'expanded' may be empty if the base word has no other
 		// forms.
 		responseChan <- &InflectionResponse{
-			request.Line, posEnum, title, expanded, false}
+			request.Line, posEnum, title, expanded}
 	}
 	responseChan <- nil
 }
 
 func main() {
 	flag.Parse()
+	if len(*outputXmlFile) == 0 {
+		log.Fatalln("--output_file is required")
+	}
 
-	file, err := os.Open(inputCsvFile)
+	inFile, err := os.Open(inputCsvFile)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	csv := csv.NewReader(file)
+	inCsv := csv.NewReader(inFile)
+
+	outFile, err := os.Create(*outputXmlFile)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	// We farm out the Lua invocations to several goroutines for parallelism.
 	requestChan := make(chan InflectionRequest, 100)
@@ -119,14 +128,13 @@ func main() {
 	// English Wiktionary that invokes the "highly irregular" cop-out.
 	responseChan <- &InflectionResponse{
 		0, wiktionary.Verb, "be",
-		[]string{"am", "is", "are", "was", "were", "being", "beings", "been"},
-		true}
+		[]string{"am", "is", "are", "was", "were", "being", "beings", "been"}}
 
 	// Spawn another goroutine to read in the CSV file and distribute its lines
 	// to the workers.
 	go func() {
 		for line := 1; ; line++ {
-			record, err := csv.Read()
+			record, err := inCsv.Read()
 			if err == io.EOF {
 				break
 			} else if err != nil {
@@ -140,17 +148,13 @@ func main() {
 		close(requestChan)
 	}()
 
-	type BaseWord struct {
-		Word      string
-		Irregular bool
+	if _, err = outFile.Write([]byte("<inflections>\n")); err != nil {
+		log.Fatalln(err)
 	}
 
-	// Collect and print the results in the main thread.
-	// TODO: baseWords := make(map[BaseWord]bool)
-	inflectionToBaseWord := make(map[string]*BaseWord)
-
-	// Count the number of nils; this indicates how many workers have
-	// completed.
+	// Collect and output the results in the main thread. Count the number of
+	// nils; this indicates how many workers have completed.
+	records := 0
 	nils := 0
 	for nils < concurrency {
 		response := <-responseChan
@@ -159,18 +163,29 @@ func main() {
 			continue
 		}
 
-		baseWord := BaseWord{response.Title, response.Irregular}
-		for _, inflection := range response.Inflections {
-			existingBaseWord, ok := inflectionToBaseWord[inflection]
-			if ok {
-				if len(existingBaseWord.Word) <= len(baseWord.Word) {
-					// We prefer the existing base word, as it's shorter.
-					continue
-				}
-			}
-			inflectionToBaseWord[inflection] = &baseWord
+		record := wiktionary.Inflection{
+			BaseWord:       response.Title,
+			Pos:            wiktionary.PosName(response.Pos),
+			InflectedForms: response.Inflections,
+		}
+		xmlRecord, err := xml.MarshalIndent(record, "  ", "  ")
+		if err != nil {
+			log.Fatalln(err)
+		}
+		if _, err = outFile.Write(xmlRecord); err != nil {
+			log.Fatalln(err)
+		}
+		if _, err = outFile.Write([]byte("\n")); err != nil {
+			log.Fatalln(err)
 		}
 
-		// TODO:
+		records++
+		if records%1000 == 0 {
+			log.Printf("Processed %v records\n", records)
+		}
+	}
+
+	if _, err = outFile.Write([]byte("</inflections>\n")); err != nil {
+		log.Fatalln(err)
 	}
 }
