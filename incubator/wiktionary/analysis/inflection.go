@@ -4,7 +4,7 @@
 // within our Go program, but for the time being we just shell out to the
 // Lua command.
 
-package wiktionary
+package analysis
 
 import (
 	"bufio"
@@ -48,9 +48,9 @@ func checkForLuaScript(dir string) (bool, error) {
 func NewInflector() (*Inflector, error) {
 	// We must search for the Lua files, as binaries and tests run in different
 	// directories. In binaries, the Lua files may be found at
-	// ./sbpgo/games/words/wiktionary. In unit tests, the Lua files are in the
+	// ./incubator/wiktionary/analysis. In unit tests, the Lua files are in the
 	// current directory (.).
-	for _, dir := range []string{".", "./incubator/wiktionary"} {
+	for _, dir := range []string{".", "./incubator/wiktionary/analysis"} {
 		found, err := checkForLuaScript(dir)
 		if err != nil {
 			return nil, err

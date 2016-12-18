@@ -5,7 +5,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/sethpollen/dorkalonius/incubator/wiktionary"
+	"github.com/sethpollen/dorkalonius/incubator/wiktionary/analysis"
 	"io/ioutil"
 	"log"
 	"os"
@@ -32,7 +32,7 @@ func main() {
 	}
 
 	filesWritten := 0
-	wiktionary.ReadDump(file, func(page *wiktionary.Page) {
+	analysis.ReadDump(file, func(page *analysis.Page) {
 		var interestingPrefix string
 		for _, prefix := range []string{"Module", "Wiktionary"} {
 			if strings.HasPrefix(page.Title, prefix+":") {

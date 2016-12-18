@@ -4,7 +4,8 @@ import (
 	"encoding/csv"
 	"encoding/xml"
 	"flag"
-	"github.com/sethpollen/dorkalonius/incubator/wiktionary"
+  "github.com/sethpollen/dorkalonius/incubator/wiktionary"
+  "github.com/sethpollen/dorkalonius/incubator/wiktionary/analysis"
 	"io"
 	"log"
 	"os"
@@ -36,7 +37,7 @@ type InflectionResponse struct {
 // finishes processing everything from 'requestChan'.
 func worker(requestChan <-chan InflectionRequest,
 	responseChan chan<- *InflectionResponse) {
-	inflector, err := wiktionary.NewInflector()
+	inflector, err := analysis.NewInflector()
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -72,13 +73,13 @@ func worker(requestChan <-chan InflectionRequest,
 		var posEnum int
 		switch partOfSpeech {
 		case "noun":
-			posEnum = wiktionary.Noun
+			posEnum = analysis.Noun
 		case "verb":
-			posEnum = wiktionary.Verb
+			posEnum = analysis.Verb
 		case "adj":
-			posEnum = wiktionary.Adjective
+			posEnum = analysis.Adjective
 		case "adv", "adverb":
-			posEnum = wiktionary.Adverb
+			posEnum = analysis.Adverb
 		default:
 			log.Fatalf("Unrecognized part of speech on line %d: %s",
 				request.Line, partOfSpeech)
@@ -127,7 +128,7 @@ func main() {
 	// Manually insert an entry for the verb "be". This is the only page on the
 	// English Wiktionary that invokes the "highly irregular" cop-out.
 	responseChan <- &InflectionResponse{
-		0, wiktionary.Verb, "be",
+		0, analysis.Verb, "be",
 		[]string{"am", "is", "are", "was", "were", "being", "beings", "been"}}
 
 	// Spawn another goroutine to read in the CSV file and distribute its lines
@@ -165,7 +166,7 @@ func main() {
 
 		record := wiktionary.Inflection{
 			BaseWord:       response.Title,
-			Pos:            wiktionary.PosName(response.Pos),
+			Pos:            analysis.PosName(response.Pos),
 			InflectedForms: response.Inflections,
 		}
 		xmlRecord, err := xml.MarshalIndent(record, "  ", "  ")

@@ -1,11 +1,11 @@
-package wiktionary_test
+package analysis_test
 
 import (
 	"sort"
 	"strings"
 	"testing"
 )
-import . "github.com/sethpollen/dorkalonius/incubator/wiktionary"
+import . "github.com/sethpollen/dorkalonius/incubator/wiktionary/analysis"
 
 type Case struct {
 	Pos   int

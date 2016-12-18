@@ -1,6 +1,6 @@
 // Utilities for working with the Wiktionary XML dump.
 
-package wiktionary
+package analysis
 
 import (
 	"encoding/xml"

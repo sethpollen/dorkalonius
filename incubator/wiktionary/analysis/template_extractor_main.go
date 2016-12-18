@@ -6,7 +6,7 @@ package main
 import (
 	"encoding/csv"
 	"flag"
-	"github.com/sethpollen/dorkalonius/incubator/wiktionary"
+	"github.com/sethpollen/dorkalonius/incubator/wiktionary/analysis"
 	"log"
 	"os"
 	"regexp"
@@ -55,7 +55,7 @@ func main() {
 	// very strange terms, so we just drop words which use them.
 	vernRe := regexp.MustCompile("\\{\\{vern\\|")
 
-	wiktionary.ReadDump(inFile, func(page *wiktionary.Page) {
+	analysis.ReadDump(inFile, func(page *analysis.Page) {
 		for _, prefix := range []string{
 			"Module:", "Wiktionary:", "Template:", "MediaWiki:", "Citations:"} {
 			if strings.HasPrefix(page.Title, prefix) {
