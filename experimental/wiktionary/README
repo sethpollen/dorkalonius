@@ -1,0 +1,5 @@
+Tools to deal with data from Wiktionary. My current idea is to use Wiktionary
+to reduce verbs to their infinitive forms and reduce nouns to their singular
+forms. This is all a work in progress.
+
+TODO: Clean up this directory once we have everything working.

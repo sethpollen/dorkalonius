@@ -1,0 +1,11 @@
+Get more corpora from various authors, rappers, public figures, etc. Add code
+for stemming and computing frequency lists. Add UI for generating mashups of
+different corpora.
+
+TODO: Spell out am/is/are/was/were... when "be" is selected.
+
+TODO: Change weight adjustments to be based on a percentage of the total corpus
+instead of just a fixed adder.
+
+TODO: Increase weight on adjective selection to choose more interesting,
+infrequent target words.
