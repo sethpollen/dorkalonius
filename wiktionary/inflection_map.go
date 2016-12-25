@@ -4,7 +4,11 @@
 package wiktionary
 
 import (
+  "compress/bzip2"
+  "encoding/xml"
   "log"
+  "os"
+  "strings"
 )
 
 type InflectionMap struct {
@@ -23,17 +27,49 @@ func NewInflectionMap(data []Inflection) *InflectionMap {
   return m
 }
 
+func InflectionMapFromBzippedXml(filename string) (*InflectionMap, error) {
+  var err error
+  
+  file, err := os.Open(filename)
+  if err != nil {
+    return nil, err
+  }
+  decoder := xml.NewDecoder(bzip2.NewReader(file))
+  
+  var parsed Inflections
+  if err = decoder.Decode(&parsed); err != nil {
+    return nil, err
+  }
+  
+  return NewInflectionMap(parsed.Inflections), nil
+}
+
 func (self *InflectionMap) NumBaseWords() int {
 	return len(self.BaseWords)
 }
 
 // Adds a baseWord, inflected pair to the map.
 func (self *InflectionMap) Add(baseWord, inflected string) {
+  if inflected == "-" {
+    return
+  }
+  
 	self.BaseWords[baseWord] = true
 	existingBaseWord, ok := self.InflectedToBase[inflected]
+	
 	if ok && existingBaseWord != baseWord {
-    log.Fatalf("Multiple base words (%q, %q) for inflected form %q\n",
-               existingBaseWord, baseWord, inflected)
+    // Prefer to reduce -ings to -ing and not all the way down to the infinitive
+    // form of the verb. Thus, "bearings" becomes "bearing" and not "bear".
+    if strings.HasSuffix(inflected, "ings") {
+      if strings.HasSuffix(baseWord, "ing") {
+        self.InflectedToBase[inflected] = baseWord
+      }
+      return
+    }
+    // TODO:
+    log.Printf("Inflected %q maps to bases (%q, %q)\n",
+               inflected, existingBaseWord, baseWord)
+    return
 	}
 	self.InflectedToBase[inflected] = baseWord
 }
