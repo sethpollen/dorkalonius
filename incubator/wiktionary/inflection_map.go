@@ -3,16 +3,24 @@
 
 package wiktionary
 
-// TODO: We may want to take part of speech into account when deciding which
-// base form to choose among multiple base forms.
+import (
+  "log"
+)
 
 type InflectionMap struct {
 	BaseWords       map[string]bool
 	InflectedToBase map[string]string
 }
 
-func NewInflectionMap() *InflectionMap {
-	return &InflectionMap{make(map[string]bool), make(map[string]string)}
+// Returns a new InflectionMap, initialized with 'data'.
+func NewInflectionMap(data []Inflection) *InflectionMap {
+	m := &InflectionMap{make(map[string]bool), make(map[string]string)}
+	for _, i := range data {
+    for _, inflectedForm := range i.InflectedForms {
+      m.Add(i.BaseWord, inflectedForm)
+    }
+  }
+  return m
 }
 
 func (self *InflectionMap) NumBaseWords() int {
@@ -23,9 +31,9 @@ func (self *InflectionMap) NumBaseWords() int {
 func (self *InflectionMap) Add(baseWord, inflected string) {
 	self.BaseWords[baseWord] = true
 	existingBaseWord, ok := self.InflectedToBase[inflected]
-	if ok && len(existingBaseWord) <= len(baseWord) {
-		// The existing base word is shorter, so just leave it.
-		return
+	if ok && existingBaseWord != baseWord {
+    log.Fatalf("Multiple base words (%q, %q) for inflected form %q\n",
+               existingBaseWord, baseWord, inflected)
 	}
 	self.InflectedToBase[inflected] = baseWord
 }
@@ -42,4 +50,22 @@ func (self *InflectionMap) GetBaseWord(inflected string) string {
 	}
 	// We don't have any mapping for this word, so just pass it through.
 	return inflected
+}
+
+type preferenceSorter struct {
+  data *[]string
+}
+
+func (self preferenceSorter) Len() int {
+  return len(*self.data)
+}
+
+func (self preferenceSorter) Less(i, j int) bool {
+  return len((*self.data)[i]) < len((*self.data)[j])
+}
+
+func (self preferenceSorter) Swap(i, j int) {
+  temp := (*self.data)[i]
+  (*self.data)[i] = (*self.data)[j]
+  (*self.data)[j] = temp
 }
