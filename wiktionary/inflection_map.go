@@ -13,13 +13,19 @@ import (
 )
 
 type InflectionMap struct {
-	BaseWords       map[string]bool
-	InflectedToBase map[string]string
+	BaseWords                map[string]bool
+	InflectedToBase          map[string]string
+	
+	// Manually selected overrides to use when populating InflectedToBase; this
+	// works around inflected forms which map to multiple base forms.
+	PreferredInflectedToBase map[string]string
 }
 
 // Returns a new InflectionMap, initialized with 'data'.
 func NewInflectionMap(data []Inflection) *InflectionMap {
-	m := &InflectionMap{make(map[string]bool), make(map[string]string)}
+	m := &InflectionMap{make(map[string]bool),
+                      make(map[string]string),
+                      make(map[string]string)}
 	for _, i := range data {
     for _, inflectedForm := range i.InflectedForms {
       m.Add(i.BaseWord, inflectedForm)
