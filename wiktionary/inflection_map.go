@@ -4,9 +4,10 @@
 package wiktionary
 
 import (
+  "bufio"
   "compress/bzip2"
   "encoding/xml"
-  "log"
+  "fmt"
   "os"
   "strings"
 )
@@ -66,9 +67,23 @@ func (self *InflectionMap) Add(baseWord, inflected string) {
       }
       return
     }
+
     // TODO:
-    log.Printf("Inflected %q maps to bases (%q, %q)\n",
-               inflected, existingBaseWord, baseWord)
+    reader := bufio.NewReader(os.Stdin)
+    for {
+      fmt.Fprintf(os.Stderr,
+                  "Inflected %q maps to bases (%q, %q)? --> ",
+                  inflected, existingBaseWord, baseWord)
+      choice, _ := reader.ReadString('\n')
+      choice = strings.TrimSpace(choice)
+      if choice != existingBaseWord && choice != baseWord {
+        fmt.Fprintf(os.Stderr, "Bad choice; try again\n")
+        continue
+      }
+      fmt.Fprintf(os.Stdout, "%q, %q\n", inflected, choice)
+      break
+    }
+    
     return
 	}
 	self.InflectedToBase[inflected] = baseWord
