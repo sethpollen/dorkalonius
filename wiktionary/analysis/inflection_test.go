@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 )
-import . "github.com/sethpollen/dorkalonius/incubator/wiktionary/analysis"
+import . "github.com/sethpollen/dorkalonius/wiktionary/analysis"
 
 type Case struct {
 	Pos   int

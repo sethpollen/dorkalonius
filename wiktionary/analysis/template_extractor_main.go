@@ -6,7 +6,7 @@ package main
 import (
 	"encoding/csv"
 	"flag"
-	"github.com/sethpollen/dorkalonius/incubator/wiktionary/analysis"
+	"github.com/sethpollen/dorkalonius/wiktionary/analysis"
 	"log"
 	"os"
 	"regexp"

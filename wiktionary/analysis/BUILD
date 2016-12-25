@@ -35,9 +35,9 @@ go_binary(
 go_binary(
     name = "inflection_main",
     srcs = ["inflection_main.go"],
-    data = ["//incubator/wiktionary/analysis/input_data"],
+    data = ["//wiktionary/analysis/input_data"],
     deps = [
         ":go_default_library",
-        "//incubator/wiktionary:go_default_library",
+        "//wiktionary:go_default_library",
     ],
 )

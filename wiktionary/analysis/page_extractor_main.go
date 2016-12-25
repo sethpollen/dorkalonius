@@ -5,7 +5,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/sethpollen/dorkalonius/incubator/wiktionary/analysis"
+	"github.com/sethpollen/dorkalonius/wiktionary/analysis"
 	"io/ioutil"
 	"log"
 	"os"

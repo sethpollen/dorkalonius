@@ -4,8 +4,8 @@ import (
 	"encoding/csv"
 	"encoding/xml"
 	"flag"
-	"github.com/sethpollen/dorkalonius/incubator/wiktionary"
-	"github.com/sethpollen/dorkalonius/incubator/wiktionary/analysis"
+	"github.com/sethpollen/dorkalonius/wiktionary"
+	"github.com/sethpollen/dorkalonius/wiktionary/analysis"
 	"io"
 	"log"
 	"os"
@@ -18,7 +18,7 @@ var skipLines = flag.Int("skip_lines", 0,
 var outputXmlFile = flag.String("output_file", "",
 	"Output XML file to write. See inflection_xml.go for the format.")
 
-const inputCsvFile = "./incubator/wiktionary/dump/data/en-templates.csv"
+const inputCsvFile = "./wiktionary/dump/data/en-templates.csv"
 const concurrency = 16
 
 // Argument/return types for the ExpandInflections call.
