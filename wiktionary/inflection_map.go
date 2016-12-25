@@ -6,8 +6,10 @@ package wiktionary
 import (
   "bufio"
   "compress/bzip2"
+  "encoding/csv"
   "encoding/xml"
   "fmt"
+  "io"
   "os"
   "strings"
 )
@@ -22,14 +24,19 @@ type InflectionMap struct {
 }
 
 // Returns a new InflectionMap, initialized with 'data'.
-func NewInflectionMap(data []Inflection) *InflectionMap {
+func NewInflectionMap(data []Inflection,
+                      preferences map[string]string) *InflectionMap {
 	m := &InflectionMap{make(map[string]bool),
                       make(map[string]string),
-                      make(map[string]string)}
+                      preferences}
 	for _, i := range data {
-    for _, inflectedForm := range i.InflectedForms {
-      m.Add(i.BaseWord, inflectedForm)
+    if i.Pos != "noun" && i.Pos != "verb" {
+      // We don't deconjugate adjectives or adverbs. Doing so would map
+      // comparatives and superlatives back to their base form; we have
+      // decided not to do that.
+      continue
     }
+    m.Add(i.BaseWord, i.InflectedForms)
   }
   return m
 }
@@ -48,30 +55,55 @@ func InflectionMapFromBzippedXml(filename string) (*InflectionMap, error) {
     return nil, err
   }
   
-  return NewInflectionMap(parsed.Inflections), nil
+  preferences, err := loadPreferences()
+  if err != nil {
+    return nil, err
+  }
+  
+  return NewInflectionMap(parsed.Inflections, preferences), nil
 }
 
 func (self *InflectionMap) NumBaseWords() int {
 	return len(self.BaseWords)
 }
 
-// Adds a baseWord, inflected pair to the map.
-func (self *InflectionMap) Add(baseWord, inflected string) {
-  if inflected == "-" {
-    return
-  }
-  
+func (self *InflectionMap) Add(baseWord string, inflectedForms []string) {  
 	self.BaseWords[baseWord] = true
-	existingBaseWord, ok := self.InflectedToBase[inflected]
 	
-	if ok && existingBaseWord != baseWord {
+	for _, inflected := range inflectedForms {
+    if inflected == "-" {
+      continue
+    }
+    
+    // First check if we have a preference for this inflected form. If we do, then
+    // always use that.
+    preferredBaseWord, ok := self.PreferredInflectedToBase[inflected]
+    if ok {
+      self.InflectedToBase[inflected] = preferredBaseWord
+      continue
+    }
+
+    existingBaseWord, ok := self.InflectedToBase[inflected]
+    if !ok {
+      self.InflectedToBase[inflected] = baseWord
+      continue
+    }
+    if existingBaseWord == baseWord {
+      continue
+    }
+    // We have conflicting base words for this inflected form.
+    
     // Prefer to reduce -ings to -ing and not all the way down to the infinitive
     // form of the verb. Thus, "bearings" becomes "bearing" and not "bear".
     if strings.HasSuffix(inflected, "ings") {
-      if strings.HasSuffix(baseWord, "ing") {
+      singular := inflected[0:len(inflected)-1]
+      if baseWord == singular {
         self.InflectedToBase[inflected] = baseWord
+        continue
       }
-      return
+      if existingBaseWord == singular {
+        continue
+      }
     }
 
     // TODO:
@@ -80,19 +112,24 @@ func (self *InflectionMap) Add(baseWord, inflected string) {
       fmt.Fprintf(os.Stderr,
                   "Inflected %q maps to bases (%q, %q)? --> ",
                   inflected, existingBaseWord, baseWord)
-      choice, _ := reader.ReadString('\n')
-      choice = strings.TrimSpace(choice)
-      if choice != existingBaseWord && choice != baseWord {
+      chosenBase, _ := reader.ReadString('\n')
+      chosenBase = strings.TrimSpace(chosenBase)
+      if chosenBase != existingBaseWord && chosenBase != baseWord {
         fmt.Fprintf(os.Stderr, "Bad choice; try again\n")
         continue
       }
-      fmt.Fprintf(os.Stdout, "%q, %q\n", inflected, choice)
+      
+      self.InflectedToBase[inflected] = chosenBase
+      self.PreferredInflectedToBase[inflected] = chosenBase
       break
     }
     
-    return
-	}
-	self.InflectedToBase[inflected] = baseWord
+    fmt.Println("")
+    for k, v := range self.PreferredInflectedToBase {
+      fmt.Printf("%q,%q\n", k, v);
+    }
+    fmt.Println("")
+  }
 }
 
 // Gets the base word for the given inflected form.
@@ -109,20 +146,22 @@ func (self *InflectionMap) GetBaseWord(inflected string) string {
 	return inflected
 }
 
-type preferenceSorter struct {
-  data *[]string
-}
-
-func (self preferenceSorter) Len() int {
-  return len(*self.data)
-}
-
-func (self preferenceSorter) Less(i, j int) bool {
-  return len((*self.data)[i]) < len((*self.data)[j])
-}
-
-func (self preferenceSorter) Swap(i, j int) {
-  temp := (*self.data)[i]
-  (*self.data)[i] = (*self.data)[j]
-  (*self.data)[j] = temp
+func loadPreferences() (map[string]string, error) {
+  csvReader := csv.NewReader(Get_preferences_csv("preferences.csv"))
+  result := make(map[string]string)
+  for {
+    record, err := csvReader.Read()
+    if err == io.EOF {
+      break
+    }
+    if err != nil {
+      return result, err
+    }
+    if len(record) != 2 {
+      return result, fmt.Errorf(
+        "Record has wrong number of cells: %d", len(record))
+    }
+    result[record[0]] = record[1]
+  }
+  return result, nil
 }
