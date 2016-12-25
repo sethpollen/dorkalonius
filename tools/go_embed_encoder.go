@@ -36,7 +36,7 @@ func NewGoEmbedEncoder(sink io.Writer) (io.WriteCloser, error) {
 
 // Max number of data characters to write to the current line. Doesn't account
 // for the potential overhead of escaping.
-const maxLineSize = 100
+const maxLineSize = 1000
 
 type encoder struct {
 	// Chain of steps which eventually dump into 'dataBuffer'.
