@@ -6,19 +6,22 @@ import (
 )
 
 func TestGetWordList(t *testing.T) {
-	list := coca.GetWordList()
+	cocaWordList, err := coca.GetWordList()
+	if err != nil {
+		t.Error(err)
+	}
 
 	// The expectation here is less than 5000 due to repeated words in the data
 	// file.
-	if len(list.Words) != 4351 {
-		t.Errorf("Expected 4351 words; got %v", len(list.Words))
+	if len(cocaWordList.Words) != 4351 {
+		t.Errorf("Expected 4351 words; got %v", len(cocaWordList.Words))
 	}
 
 	var totalOccurrences int64 = 0
 	var lastOccurrences int64 = -1
 	var used = make(map[string]bool)
 
-	for _, word := range list.Words {
+	for _, word := range cocaWordList.Words {
 		totalOccurrences += word.Occurrences
 
 		if lastOccurrences != -1 {
@@ -41,8 +44,8 @@ func TestGetWordList(t *testing.T) {
 		used[word.Word] = true
 	}
 
-	if list.TotalOccurrences != totalOccurrences {
+	if cocaWordList.TotalOccurrences != totalOccurrences {
 		t.Errorf("Expected %v total occurrences; got %v",
-			totalOccurrences, list.TotalOccurrences)
+			totalOccurrences, cocaWordList.TotalOccurrences)
 	}
 }

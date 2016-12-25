@@ -36,9 +36,13 @@ func main() {
 	if *sample_size < 0 {
 		log.Fatalln("--sample_size must be nonnegative")
 	}
-
-	sampler := dorkalonius.NewIndex(coca.GetWordList())
 	var err error
+
+	cocaWordList, err := coca.GetWordList()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	sampler := dorkalonius.NewIndex(cocaWordList)
 
 	if *outputDir == "" {
 		fmt.Println()

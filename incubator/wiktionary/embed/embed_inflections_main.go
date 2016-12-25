@@ -1,13 +1,15 @@
 // Tool for converting the inflections.xml file into a Go source file providing
 // programmatic access to it without any runtime file dependencies.
 
+// TODO: make a library
+
 package main
 
 import (
-  "bytes"
-  "encoding/base64"
-  "encoding/gob"
-  "encoding/xml"
+	"bytes"
+	"encoding/base64"
+	"encoding/gob"
+	"encoding/xml"
 	"flag"
 	"github.com/sethpollen/dorkalonius/incubator/wiktionary"
 	"log"
@@ -30,40 +32,40 @@ func main() {
 	}
 
 	in, err := os.Open(*sourceFile)
-  if err != nil {
-    log.Fatalln(err)
-  }
-  
-  xmlDecoder := xml.NewDecoder(in)
-  var inflections wiktionary.Inflections
-  err = xmlDecoder.Decode(&inflections)
-  if err != nil {
-    log.Fatalln(err)
-  }
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-  // Sanity check that we didn't skip a bunch of XML.
-  if len(inflections.Inflections) == 0 {
-    log.Fatalln("No inflections read from input file")
-  }
-  
-  inflectionMap := wiktionary.NewInflectionMap()
-  for _, inflection := range inflections.Inflections {
-    for _, inflectedForm := range inflection.InflectedForms {
-      inflectionMap.Add(inflection.BaseWord, inflectedForm)
-    }
-  }
-  
-  // TODO: This causes bazel to hang, so we skip it for now.
-  log.Fatalln("TODO:")
-  
-  var encodedMap bytes.Buffer
-  base64Encoder := base64.NewEncoder(base64.StdEncoding, &encodedMap)
-  gobEncoder := gob.NewEncoder(base64Encoder)
-  if err = gobEncoder.Encode(inflectionMap); err != nil {
-    log.Fatalln(err)
-  }
-  base64Encoder.Close()
-  
+	xmlDecoder := xml.NewDecoder(in)
+	var inflections wiktionary.Inflections
+	err = xmlDecoder.Decode(&inflections)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	// Sanity check that we didn't skip a bunch of XML.
+	if len(inflections.Inflections) == 0 {
+		log.Fatalln("No inflections read from input file")
+	}
+
+	inflectionMap := wiktionary.NewInflectionMap()
+	for _, inflection := range inflections.Inflections {
+		for _, inflectedForm := range inflection.InflectedForms {
+			inflectionMap.Add(inflection.BaseWord, inflectedForm)
+		}
+	}
+
+	// TODO: This causes bazel to hang, so we skip it for now.
+	log.Fatalln("TODO:")
+
+	var encodedMap bytes.Buffer
+	base64Encoder := base64.NewEncoder(base64.StdEncoding, &encodedMap)
+	gobEncoder := gob.NewEncoder(base64Encoder)
+	if err = gobEncoder.Encode(inflectionMap); err != nil {
+		log.Fatalln(err)
+	}
+	base64Encoder.Close()
+
 	out, err := os.Create(*destFile)
 	if err != nil {
 		log.Fatalln(err)
@@ -91,11 +93,11 @@ func main() {
     const encodedList =
     `))
 
-  for encodedMap.Len() > 0 {
-    out.Write([]byte("\""))
-    out.Write(encodedMap.Next(75))
-    out.Write([]byte("\"+\n"))
-  }
-  // Close the final + sign with an empty string.
-  out.Write([]byte("\"\"\n"))
+	for encodedMap.Len() > 0 {
+		out.Write([]byte("\""))
+		out.Write(encodedMap.Next(75))
+		out.Write([]byte("\"+\n"))
+	}
+	// Close the final + sign with an empty string.
+	out.Write([]byte("\"\"\n"))
 }

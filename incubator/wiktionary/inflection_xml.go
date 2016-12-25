@@ -7,8 +7,8 @@ import (
 )
 
 type Inflections struct {
-  XMLName     xml.Name     `xml:"inflections"`
-  Inflections []Inflection `xml:"inflection"`
+	XMLName     xml.Name     `xml:"inflections"`
+	Inflections []Inflection `xml:"inflection"`
 }
 
 type Inflection struct {

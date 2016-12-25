@@ -1,24 +1,18 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("//tools:go_embed_data.bzl", "go_embed_data")
 
-go_binary(
-    name = "embed_wordlist_main",
-    srcs = ["embed_wordlist_main.go"],
-    deps = ["//:go_default_library"],
-)
-
-genrule(
-    name = "embed_wordlist",
-    srcs = ["coca-5000.csv"],
-    outs = ["embedded_wordlist.go"],
-    cmd = "./$(location embed_wordlist_main)" +
-          "  --source_file=\"$(location coca-5000.csv)\"" +
-          "  --dest_file=\"$@\"",
-    tools = [":embed_wordlist_main"],
+go_embed_data(
+    name = "coca_5000_csv",
+    data = ["coca-5000.csv"],
+    package = "coca",
 )
 
 go_library(
     name = "go_default_library",
-    srcs = [":embed_wordlist"],
+    srcs = [
+        "word_list.go",
+        ":coca_5000_csv",
+    ],
     visibility = ["//visibility:public"],
     deps = ["//:go_default_library"],
 )
