@@ -13,7 +13,7 @@ genrule(
     cmd = "./$(location embed_inflections_main)" +
           "  --source_file=\"$(location inflections.xml)\"" +
           "  --dest_file=\"$@\"",
-    tools = ["embed_inflections_main"],
+    tools = [":embed_inflections_main"],
 )
 
 go_library(

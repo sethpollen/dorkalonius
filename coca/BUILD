@@ -13,7 +13,7 @@ genrule(
     cmd = "./$(location embed_wordlist_main)" +
           "  --source_file=\"$(location coca-5000.csv)\"" +
           "  --dest_file=\"$@\"",
-    tools = ["embed_wordlist_main"],
+    tools = [":embed_wordlist_main"],
 )
 
 go_library(
