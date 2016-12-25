@@ -1,0 +1,2 @@
+Tools to perform offline analysis on Wiktionary data. We shouldn't have to
+run these tools often; their results are stored in Github directly.
