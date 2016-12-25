@@ -1,5 +1,0 @@
-TODO: Unit test that crew stays "crew" and doesn't get deconjugated to
-      "crow" via the U.K. conjugation.
-      
-TODO: Implement a go_embed_data rule and use it for the coca data.
-
