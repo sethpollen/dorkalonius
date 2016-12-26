@@ -71,7 +71,7 @@ func (self *InflectionMap) Add(baseWord string, inflectedForms []string) {
 	self.BaseWords[baseWord] = true
 
 	for _, inflected := range inflectedForms {
-		if inflected == "-" {
+		if inflected == "-" || inflected == "?" {
 			continue
 		}
 
@@ -110,8 +110,8 @@ func (self *InflectionMap) Add(baseWord string, inflectedForms []string) {
 		reader := bufio.NewReader(os.Stdin)
 		for {
 			fmt.Fprintf(os.Stderr,
-				"Inflected %q maps to bases (%q, %q)? --> ",
-				inflected, existingBaseWord, baseWord)
+				"(%d) Inflected %q maps to bases (%q, %q)? --> ",
+        len(self.BaseWords), inflected, existingBaseWord, baseWord)
 			chosenBase, _ := reader.ReadString('\n')
 			chosenBase = strings.TrimSpace(chosenBase)
 			if chosenBase != existingBaseWord && chosenBase != baseWord {
@@ -161,6 +161,10 @@ func loadPreferences() (map[string]string, error) {
 			return result, fmt.Errorf(
 				"Record has wrong number of cells: %d", len(record))
 		}
+		_, ok = result[record[0]]
+		if ok {
+      log.Fatalf("loadPreferences found duplicate entry for %q\n", record[0])
+    }
 		result[record[0]] = record[1]
 	}
 	return result, nil
