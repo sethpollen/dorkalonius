@@ -14,7 +14,7 @@ func loadMap() *InflectionMap {
   return i
 }
 
-func TestCounts(t *testing.T) {
+func TestBasic(t *testing.T) {
   var inflectionMap = loadMap()
 	if len(inflectionMap.BaseWords) != 222790 {
 		t.Errorf("Got %d base words", len(inflectionMap.BaseWords))
@@ -22,13 +22,10 @@ func TestCounts(t *testing.T) {
 	if len(inflectionMap.InflectedToBase) != 242271 {
 		t.Errorf("Got %d inflections", len(inflectionMap.InflectedToBase))
 	}
-}
-
-func TestWords(t *testing.T) {
-  var inflectionMap = loadMap()
   cases := [][]string{
     []string{"clothe", "clothe"},
     []string{"clothes", "clothe"},
+    []string{"crew", "crew"},
     []string{"bear", "bear"},
     []string{"bears", "bear"},
     []string{"bearing", "bearing"},
