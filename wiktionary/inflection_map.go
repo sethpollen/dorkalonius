@@ -4,7 +4,6 @@
 package wiktionary
 
 import (
-	"bufio"
 	"compress/bzip2"
 	"encoding/csv"
 	"encoding/xml"
@@ -107,37 +106,7 @@ func (self *InflectionMap) Add(baseWord string, inflectedForms []string) {
 			}
 		}
 
-		// TODO:
-		reader := bufio.NewReader(os.Stdin)
-		for {
-			fmt.Fprintf(os.Stderr,
-				"(%d) Inflected %q maps to bases (%q, %q)? --> ",
-        len(self.BaseWords), inflected, existingBaseWord, baseWord)
-			chosenBase, _ := reader.ReadString('\n')
-			chosenBase = strings.TrimSpace(chosenBase)
-			if chosenBase != existingBaseWord && chosenBase != baseWord {
-				fmt.Fprintf(os.Stderr, "Bad choice; try again\n")
-				continue
-			}
-
-			self.InflectedToBase[inflected] = chosenBase
-			self.PreferredInflectedToBase[inflected] = chosenBase
-			break
-		}
-
-    fmt.Println("")
-    fmt.Println("")
-    fmt.Println("")
-    fmt.Println("")
-    fmt.Println("")
-		for k, v := range self.PreferredInflectedToBase {
-			fmt.Printf("%q,%q\n", k, v)
-		}
-    fmt.Println("")
-    fmt.Println("")
-    fmt.Println("")
-    fmt.Println("")
-    fmt.Println("")
+		log.Fatalf("Multiple base words for %q\n", inflected)
 	}
 }
 

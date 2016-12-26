@@ -23,11 +23,3 @@ go_test(
     data = ["inflections.xml.bz2"],
     deps = [":go_default_library"],
 )
-
-# TODO: remove when done
-go_binary(
-    name = "inflection_sorter_main",
-    srcs = ["inflection_sorter_main.go"],
-    data = ["inflections.xml.bz2"],
-    deps = [":go_default_library"],
-)
