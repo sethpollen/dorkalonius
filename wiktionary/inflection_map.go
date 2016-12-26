@@ -10,6 +10,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
+  "log"
 	"os"
 	"strings"
 )
@@ -161,7 +162,7 @@ func loadPreferences() (map[string]string, error) {
 			return result, fmt.Errorf(
 				"Record has wrong number of cells: %d", len(record))
 		}
-		_, ok = result[record[0]]
+		_, ok := result[record[0]]
 		if ok {
       log.Fatalf("loadPreferences found duplicate entry for %q\n", record[0])
     }
