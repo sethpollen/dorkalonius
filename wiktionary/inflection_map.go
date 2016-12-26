@@ -125,11 +125,19 @@ func (self *InflectionMap) Add(baseWord string, inflectedForms []string) {
 			break
 		}
 
-		fmt.Println("")
+    fmt.Println("")
+    fmt.Println("")
+    fmt.Println("")
+    fmt.Println("")
+    fmt.Println("")
 		for k, v := range self.PreferredInflectedToBase {
 			fmt.Printf("%q,%q\n", k, v)
 		}
-		fmt.Println("")
+    fmt.Println("")
+    fmt.Println("")
+    fmt.Println("")
+    fmt.Println("")
+    fmt.Println("")
 	}
 }
 
