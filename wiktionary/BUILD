@@ -2,9 +2,9 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_binary")
 load("//tools:go_embed_data.bzl", "go_embed_data")
 
 go_embed_data(
-  name = "preferences_csv",
-  data = ["preferences.csv"],
-  package = "wiktionary",
+    name = "preferences_csv",
+    data = ["preferences.csv"],
+    package = "wiktionary",
 )
 
 go_library(
@@ -20,14 +20,14 @@ go_library(
 go_test(
     name = "inflection_map_test",
     srcs = ["inflection_map_test.go"],
-    deps = [":go_default_library"],
     data = ["inflections.xml.bz2"],
+    deps = [":go_default_library"],
 )
 
 # TODO: remove when done
 go_binary(
     name = "inflection_sorter_main",
     srcs = ["inflection_sorter_main.go"],
-    deps = [":go_default_library"],
     data = ["inflections.xml.bz2"],
+    deps = [":go_default_library"],
 )

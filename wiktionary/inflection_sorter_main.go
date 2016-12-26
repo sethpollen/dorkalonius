@@ -3,13 +3,13 @@
 package main
 
 import (
-  "github.com/sethpollen/dorkalonius/wiktionary"
-  "log"
+	"github.com/sethpollen/dorkalonius/wiktionary"
+	"log"
 )
 
 func main() {
-  _, err := wiktionary.InflectionMapFromBzippedXml("./inflections.xml.bz2")
-  if err != nil {
-    log.Fatalln(err)
-  }
+	_, err := wiktionary.InflectionMapFromBzippedXml("./inflections.xml.bz2")
+	if err != nil {
+		log.Fatalln(err)
+	}
 }
