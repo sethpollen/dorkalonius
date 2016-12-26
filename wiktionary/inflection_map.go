@@ -9,7 +9,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
-  "log"
+	"log"
 	"os"
 	"strings"
 )
@@ -126,8 +126,8 @@ func (self *InflectionMap) GetBaseWord(inflected string) string {
 
 func loadPreferences() (map[string]string, error) {
 	csvReader := csv.NewReader(
-    Get_inflection_to_base_preferences(
-      "inflection_to_base_preferences.csv"))
+		Get_inflection_to_base_preferences(
+			"inflection_to_base_preferences.csv"))
 	result := make(map[string]string)
 	for {
 		record, err := csvReader.Read()
@@ -143,8 +143,8 @@ func loadPreferences() (map[string]string, error) {
 		}
 		_, ok := result[record[0]]
 		if ok {
-      log.Fatalf("loadPreferences found duplicate entry for %q\n", record[0])
-    }
+			log.Fatalf("loadPreferences found duplicate entry for %q\n", record[0])
+		}
 		result[record[0]] = record[1]
 	}
 	return result, nil
