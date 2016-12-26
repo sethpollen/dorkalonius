@@ -1,20 +1,45 @@
 package wiktionary_test
 
 import (
+  "log"
 	"testing"
 )
 import . "github.com/sethpollen/dorkalonius/wiktionary"
 
-func TestBasic(t *testing.T) {
-	i, err := InflectionMapFromBzippedXml("./inflections.xml.bz2")
-	if err != nil {
-		t.Error(err)
-		return
+func loadMap() *InflectionMap {
+  i, err := InflectionMapFromBzippedXml("./inflections.xml.bz2")
+  if err != nil {
+    log.Fatalln(err)
+  }
+  return i
+}
+
+func TestCounts(t *testing.T) {
+  var inflectionMap = loadMap()
+	if len(inflectionMap.BaseWords) != 222790 {
+		t.Errorf("Got %d base words", len(inflectionMap.BaseWords))
 	}
-	if len(i.BaseWords) != 0 {
-		t.Errorf("Got %d base words", 0, len(i.BaseWords))
+	if len(inflectionMap.InflectedToBase) != 242271 {
+		t.Errorf("Got %d inflections", len(inflectionMap.InflectedToBase))
 	}
-	if len(i.InflectedToBase) != 0 {
-		t.Errorf("Got %d inflections", 0, len(i.InflectedToBase))
-	}
+}
+
+func TestWords(t *testing.T) {
+  var inflectionMap = loadMap()
+  cases := [][]string{
+    []string{"clothe", "clothe"},
+    []string{"clothes", "clothe"},
+    []string{"bear", "bear"},
+    []string{"bears", "bear"},
+    []string{"bearing", "bearing"},
+    []string{"bearings", "bearing"},
+  }
+  for _, testCase := range cases {
+    input := testCase[0]
+    expected := testCase[1]
+    actual := inflectionMap.GetBaseWord(input)
+    if expected != actual {
+      t.Errorf("Expected %q --> %q; got %q", input, expected, actual)
+    }
+  }
 }
