@@ -19,7 +19,7 @@ func TestEmpty(t *testing.T) {
 
 func TestWords(t *testing.T) {
   var counter int = 0
-  ProcessWords(strings.NewReader("Hey, :joe!"), func(word string) error {
+  ProcessWords(strings.NewReader("Hey, :joe! 89"), func(word string) error {
     switch counter {
       case 0:
         if word != "hey" {

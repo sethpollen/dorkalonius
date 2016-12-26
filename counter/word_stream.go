@@ -15,6 +15,9 @@ func ProcessWords(text io.Reader, process func(string) error) error {
     word = strings.TrimFunc(word, func(r rune) bool {
       return !unicode.IsLetter(r)
     })
+    if len(word) == 0 {
+      continue
+    }
     word = strings.ToLower(word)
     err := process(word)
     if err != nil {

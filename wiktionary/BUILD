@@ -20,6 +20,12 @@ go_library(
 go_test(
     name = "inflection_map_test",
     srcs = ["inflection_map_test.go"],
-    data = ["inflections.xml.bz2"],
+    data = [":inflections_xml_bz2"],
     deps = [":go_default_library"],
+)
+
+filegroup(
+    name = "inflections_xml_bz2",
+    srcs = ["inflections.xml.bz2"],
+    visibility = ["//visibility:public"],
 )
