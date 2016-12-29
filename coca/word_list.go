@@ -52,14 +52,15 @@ func GetWordList() (*dorkalonius.WordList, error) {
 		if word == "n't" {
 			continue
 		}
+    adjective := strings.Index(partOfSpeech, "j") >= 0
 
 		if existing, found := wordSet[word]; found {
 			existing.Occurrences += occurrences
-			if strings.Index(existing.PartsOfSpeech, partOfSpeech) < 0 {
-				existing.PartsOfSpeech += partOfSpeech
+			if adjective {
+        existing.Adjective = true
 			}
 		} else {
-			wordSet[word] = &dorkalonius.Word{word, occurrences, partOfSpeech}
+			wordSet[word] = &dorkalonius.Word{word, occurrences, adjective}
 		}
 	}
 

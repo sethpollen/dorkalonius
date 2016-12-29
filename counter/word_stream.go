@@ -7,6 +7,8 @@ import (
   "unicode"
 )
 
+// Breaks 'text' into individual words, as passes each one to 'process'. Aborts
+// if 'process' returns any error.
 func ProcessWords(text io.Reader, process func(string) error) error {
   scanner := bufio.NewScanner(text)
   scanner.Split(bufio.ScanWords)

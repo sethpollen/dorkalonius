@@ -83,10 +83,10 @@ func main() {
 // Generates a complete game and writes it to 'out'.
 func generateGame(sampler *dorkalonius.Index, out *os.File) error {
 	// Use a value of 1000000 here to get more interesting adjectives.
-	adjective := sampler.SamplePartOfSpeech(1, 'j', 1000000)
+	adjective := sampler.SampleAdjective(1, dorkalonius.SamplerConfig{1000000})
 	// The least frequent words in our top-5000 corpus occur about 5000 times, so
 	// this value of 1000 provides only a small boost to unlikely words.
-	wordList := sampler.Sample(*sample_size, 1000)
+	wordList := sampler.Sample(*sample_size, dorkalonius.SamplerConfig{1000})
 	sort.Sort(wordList)
 
 	var err error

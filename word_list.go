@@ -3,11 +3,10 @@ package dorkalonius
 type Word struct {
 	Word        string
 	Occurrences int64
-	// A single word may function as several parts of speech, so this string
-	// may contain several characters. Each character refers to a different
-	// part of speech. This string will be empty if the part of speech is
-	// unknown. Currently, only the COCA corpus provides part of speech data.
-	PartsOfSpeech string
+	// Indicates whether this word is known to be used as an adjective. May be
+	// false if we don't know the part of speech for this word. Currently, only
+	// the COCA corpus provides part of speech data.
+	Adjective   bool
 }
 
 type WordList struct {

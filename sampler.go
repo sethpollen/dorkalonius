@@ -2,7 +2,6 @@ package dorkalonius
 
 import (
 	"math/rand"
-	"strings"
 )
 
 // Allows efficient weighted random sampling of a WordList. The index is
@@ -20,6 +19,13 @@ type Index struct {
 	Right *Index
 	// Only set for leaf nodes, where 'left' and 'right' are both nil.
 	Word *Word
+}
+
+// Parameters for word sampling.
+type SamplerConfig struct {
+  // Amount by which to increase the occurrences value for every word.
+  // Higher values here make rare words more likely to be chosen.
+  BaseOccurrences int64
 }
 
 func NewIndex(list *WordList) *Index {
@@ -55,48 +61,49 @@ func NewIndex(list *WordList) *Index {
 	return level[0]
 }
 
-func (self *Index) Weight(baseOccurrences int64) int64 {
-	return self.Occurrences + int64(self.Leaves)*baseOccurrences
+func (self *Index) Weight(config SamplerConfig) int64 {
+	return self.Occurrences + int64(self.Leaves) * config.BaseOccurrences
 }
 
-func (self *Index) LookUp(weight int64, baseOccurrences int64) *Word {
+func (self *Index) LookUp(weight int64, config SamplerConfig) *Word {
 	if self.Word != nil {
 		return self.Word
 	}
-	leftWeight := self.Left.Weight(baseOccurrences)
+	leftWeight := self.Left.Weight(config)
 	if weight < leftWeight {
-		return self.Left.LookUp(weight, baseOccurrences)
+		return self.Left.LookUp(weight, config)
 	}
-	return self.Right.LookUp(weight-leftWeight, baseOccurrences)
+	return self.Right.LookUp(weight-leftWeight, config)
 }
 
-func (self *Index) pickWord(baseOccurrences int64) *Word {
-	return self.LookUp(rand.Int63n(self.Weight(baseOccurrences)),
-		baseOccurrences)
+func (self *Index) pickWord(config SamplerConfig) *Word {
+	return self.LookUp(rand.Int63n(self.Weight(config)), config)
 }
 
-// Randomly samples 'n' unique words the given 'partOfSpeech'. If
-// 'partOfSpeech' is '*', then any part of speech may be returned.
-func (self *Index) SamplePartOfSpeech(n int, partOfSpeech byte,
-	baseOccurrences int64) *WordList {
-	used := make(map[*Word]bool)
-	result := NewWordList()
-	for result.Len() < n {
-		word := self.pickWord(baseOccurrences)
-		if partOfSpeech != '*' &&
-			strings.IndexByte(word.PartsOfSpeech, partOfSpeech) < 0 {
-			continue
-		}
-		if used[word] {
-			continue
-		}
-		used[word] = true
-		result.AddWord(*word)
-	}
-	return result
+func (self *Index) sampleMaybeAdjective(n int, config SamplerConfig,
+                                        mustBeAdjective bool) *WordList {
+  used := make(map[*Word]bool)
+  result := NewWordList()
+  for result.Len() < n {
+    word := self.pickWord(config)
+    if mustBeAdjective && !word.Adjective {
+      continue
+    }
+    if used[word] {
+      continue
+    }
+    used[word] = true
+    result.AddWord(*word)
+  }
+  return result
 }
 
 // Randomly samples 'n' unique words.
-func (self *Index) Sample(n int, baseOccurrences int64) *WordList {
-	return self.SamplePartOfSpeech(n, '*', baseOccurrences)
+func (self *Index) Sample(n int, config SamplerConfig) *WordList {
+  return self.sampleMaybeAdjective(n, config, false)
+}
+
+// Randomly samples 'n' unique adjectives.
+func (self *Index) SampleAdjective(n int, config SamplerConfig) *WordList {
+  return self.sampleMaybeAdjective(n, config, true)
 }

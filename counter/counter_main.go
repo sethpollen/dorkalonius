@@ -30,7 +30,7 @@ func main() {
   
   wordList := dorkalonius.NewWordList()
   for wordStr, occurrences := range wordCountMap {
-    wordList.AddWord(dorkalonius.Word{wordStr, occurrences, ""})
+    wordList.AddWord(dorkalonius.Word{wordStr, occurrences, false})
   }
   sort.Sort(wordList)
   
