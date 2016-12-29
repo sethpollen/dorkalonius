@@ -11,6 +11,7 @@ go_prefix("github.com/sethpollen/dorkalonius")
 go_library(
     name = "go_default_library",
     srcs = [
+        "game.go",
         "sampler.go",
         "sleep.go",
         "word_list.go",
