@@ -80,23 +80,23 @@ func main() {
 }
 
 func generateGame(sampler *dorkalonius.Index, out *os.File) error {
-  game := dorkalonius.NewGame(sampler)
-  
-  var err error
-  _, err = out.WriteString(fmt.Sprintf("TARGET WORD: %s\n\n",
-                           game.TargetWord))
-  if err != nil {
-    return err
-  }
-  _, err = out.WriteString("AVAILABLE WORDS:\n\n")
-  if err != nil {
-    return err
-  }
-  err = printWords(game.AvailableWords, out)
-  if err != nil {
-    return err
-  }
-  return nil
+	game := dorkalonius.NewGame(sampler)
+
+	var err error
+	_, err = out.WriteString(fmt.Sprintf("TARGET WORD: %s\n\n",
+		game.TargetWord))
+	if err != nil {
+		return err
+	}
+	_, err = out.WriteString("AVAILABLE WORDS:\n\n")
+	if err != nil {
+		return err
+	}
+	err = printWords(game.AvailableWords, out)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // Pretty-print words in columns to 'out'.

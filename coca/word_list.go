@@ -15,7 +15,7 @@ import (
 
 // Fetches the COCA word list.
 func GetWordList() (*dorkalonius.WordList, error) {
-	reader := csv.NewReader(Get_coca_5000_csv("coca-5000.csv"))
+	reader := csv.NewReader(Get_coca_data("coca-5000.csv"))
 	// Disable field count checking.
 	reader.FieldsPerRecord = -1
 
@@ -52,12 +52,12 @@ func GetWordList() (*dorkalonius.WordList, error) {
 		if word == "n't" {
 			continue
 		}
-    adjective := strings.Index(partOfSpeech, "j") >= 0
+		adjective := strings.Index(partOfSpeech, "j") >= 0
 
 		if existing, found := wordSet[word]; found {
 			existing.Occurrences += occurrences
 			if adjective {
-        existing.Adjective = true
+				existing.Adjective = true
 			}
 		} else {
 			wordSet[word] = &dorkalonius.Word{word, occurrences, adjective}
@@ -69,7 +69,7 @@ func GetWordList() (*dorkalonius.WordList, error) {
 	for _, word := range wordSet {
 		wordList.AddWord(*word)
 	}
-	
+
 	// TODO:
 	fmt.Printf("Total occurrences: %d\n", wordList.TotalOccurrences)
 

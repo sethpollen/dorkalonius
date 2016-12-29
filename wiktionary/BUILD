@@ -2,7 +2,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_binary")
 load("//tools:go_embed_data.bzl", "go_embed_data")
 
 go_embed_data(
-    name = "inflection_to_base_preferences",
+    name = "preference_data",
     data = ["inflection_to_base_preferences.csv"],
     package = "wiktionary",
 )
@@ -12,7 +12,7 @@ go_library(
     srcs = [
         "inflection_map.go",
         "inflection_xml.go",
-        ":inflection_to_base_preferences",
+        ":preference_data",
     ],
     visibility = ["//visibility:public"],
 )

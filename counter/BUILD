@@ -16,10 +16,10 @@ go_test(
 go_binary(
     name = "counter_main",
     srcs = ["counter_main.go"],
+    data = ["//wiktionary:inflections_xml_bz2"],
     deps = [
         ":go_default_library",
         "//:go_default_library",
         "//wiktionary:go_default_library",
     ],
-    data = ["//wiktionary:inflections_xml_bz2"],
 )

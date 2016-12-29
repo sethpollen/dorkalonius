@@ -6,7 +6,7 @@ type Word struct {
 	// Indicates whether this word is known to be used as an adjective. May be
 	// false if we don't know the part of speech for this word. Currently, only
 	// the COCA corpus provides part of speech data.
-	Adjective   bool
+	Adjective bool
 }
 
 type WordList struct {

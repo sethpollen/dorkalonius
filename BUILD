@@ -12,6 +12,7 @@ go_library(
     name = "go_default_library",
     srcs = [
         "game.go",
+        "memoize.go",
         "sampler.go",
         "sleep.go",
         "word_list.go",

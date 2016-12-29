@@ -23,9 +23,9 @@ type Index struct {
 
 // Parameters for word sampling.
 type SamplerConfig struct {
-  // Amount by which to increase the occurrences value for every word.
-  // Higher values here make rare words more likely to be chosen.
-  BaseOccurrences int64
+	// Amount by which to increase the occurrences value for every word.
+	// Higher values here make rare words more likely to be chosen.
+	BaseOccurrences int64
 }
 
 func NewIndex(list *WordList) *Index {
@@ -62,7 +62,7 @@ func NewIndex(list *WordList) *Index {
 }
 
 func (self *Index) Weight(config SamplerConfig) int64 {
-	return self.Occurrences + int64(self.Leaves) * config.BaseOccurrences
+	return self.Occurrences + int64(self.Leaves)*config.BaseOccurrences
 }
 
 func (self *Index) LookUp(weight int64, config SamplerConfig) *Word {
@@ -81,29 +81,29 @@ func (self *Index) pickWord(config SamplerConfig) *Word {
 }
 
 func (self *Index) sampleMaybeAdjective(n int, config SamplerConfig,
-                                        mustBeAdjective bool) *WordList {
-  used := make(map[*Word]bool)
-  result := NewWordList()
-  for result.Len() < n {
-    word := self.pickWord(config)
-    if mustBeAdjective && !word.Adjective {
-      continue
-    }
-    if used[word] {
-      continue
-    }
-    used[word] = true
-    result.AddWord(*word)
-  }
-  return result
+	mustBeAdjective bool) *WordList {
+	used := make(map[*Word]bool)
+	result := NewWordList()
+	for result.Len() < n {
+		word := self.pickWord(config)
+		if mustBeAdjective && !word.Adjective {
+			continue
+		}
+		if used[word] {
+			continue
+		}
+		used[word] = true
+		result.AddWord(*word)
+	}
+	return result
 }
 
 // Randomly samples 'n' unique words.
 func (self *Index) Sample(n int, config SamplerConfig) *WordList {
-  return self.sampleMaybeAdjective(n, config, false)
+	return self.sampleMaybeAdjective(n, config, false)
 }
 
 // Randomly samples 'n' unique adjectives.
 func (self *Index) SampleAdjective(n int, config SamplerConfig) *WordList {
-  return self.sampleMaybeAdjective(n, config, true)
+	return self.sampleMaybeAdjective(n, config, true)
 }
