@@ -1,22 +1,27 @@
 // Library for converting the CSV wordlist file into a Go source file providing
 // programmatic access to it without any runtime file dependencies.
 
-package coca
+package dorkalonius
 
 import (
 	"encoding/csv"
 	"fmt"
-	"github.com/sethpollen/dorkalonius"
 	"io"
 	"sort"
 	"strconv"
 	"strings"
 )
 
-var memo = dorkalonius.NewMemo()
-
 // Fetches the COCA word list.
-func GetWordList() (*dorkalonius.WordList, error) {
+func GetCocaWordList() (*WordList, error) {
+  list, err := memo.Get()
+  if err != nil {
+    return nil, err
+  }
+  return list.(*WordList), nil
+}
+
+var memo = NewMemo(func() (interface{}, error) {
 	reader := csv.NewReader(Get_coca_data("coca-5000.csv"))
 	// Disable field count checking.
 	reader.FieldsPerRecord = -1
@@ -24,7 +29,7 @@ func GetWordList() (*dorkalonius.WordList, error) {
 	// Our raw data may contain 2 lines with the same word if that word can be
 	// used as more than one part of speech. We just add the occurrence counts
 	// of these lines together.
-	var wordSet = make(map[string]*dorkalonius.Word)
+	var wordSet = make(map[string]*Word)
 
 	for i := 0; true; i++ {
 		record, err := reader.Read()
@@ -62,19 +67,16 @@ func GetWordList() (*dorkalonius.WordList, error) {
 				existing.Adjective = true
 			}
 		} else {
-			wordSet[word] = &dorkalonius.Word{word, occurrences, adjective}
+			wordSet[word] = &Word{word, occurrences, adjective}
 		}
 	}
 
 	// Convert the map to a WordList object.
-	wordList := dorkalonius.NewWordList()
+	wordList := NewWordList()
 	for _, word := range wordSet {
 		wordList.AddWord(*word)
 	}
 
-	// TODO:
-	fmt.Printf("Total occurrences: %d\n", wordList.TotalOccurrences)
-
 	sort.Sort(wordList)
 	return wordList, nil
-}
+})

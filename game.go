@@ -22,11 +22,17 @@ const (
 	availableWordBias float64 = 3.04e-6
 )
 
-// TODO: always use the COCA set for generating the target word
-func NewGame(wordSet *Index) *Game {
-	target := wordSet.SampleAdjective(
+func NewGame(wordSet *Index) (*Game, error) {
+  // Always use the COCA set for generating the target word, as it's the only
+  // set with accurate part-of-speech tagging.
+  cocaWords, err := GetCocaWordList()
+  if err != nil {
+    return nil, err
+  }
+  
+	target := cocaWords.SampleAdjective(
 		1,
-		SamplerConfig{int64(targetWordBias * float64(wordSet.Leaves))})
+		SamplerConfig{int64(targetWordBias * float64(cocaWords.Leaves))})
 
 	wordList := wordSet.Sample(
 		numAvailableWords,
@@ -34,5 +40,5 @@ func NewGame(wordSet *Index) *Game {
 
 	sort.Sort(wordList)
 
-	return &Game{target.Words[0].Word, wordList}
+	return &Game{target.Words[0].Word, wordList}, nil
 }
