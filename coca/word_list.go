@@ -69,6 +69,9 @@ func GetWordList() (*dorkalonius.WordList, error) {
 	for _, word := range wordSet {
 		wordList.AddWord(*word)
 	}
+	
+	// TODO:
+	fmt.Printf("Total occurrences: %d\n", wordList.TotalOccurrences)
 
 	sort.Sort(wordList)
 	return wordList, nil

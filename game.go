@@ -11,16 +11,27 @@ type Game struct {
   AvailableWords *WordList
 }
 
-const sampleSize = 35
+const (
+  numAvailableWords = 35
+  
+  // Manual tuning parameters. We use a high bias for the target word
+  // in order to get something interesting. We use a much smaller bias
+  // for the available words, since we want them to mostly reflect a
+  // typical selection of words.
+  targetWordBias float64 = 3.04e-3
+  availableWordBias float64 = 3.04e-6
+)
 
 func NewGame(sampler *Index) *Game {
-  // Use a value of 1000000 here to get more interesting adjectives.
-  adjective := sampler.SampleAdjective(1, SamplerConfig{1000000})
+  target := sampler.SampleAdjective(
+    1,
+    SamplerConfig{int64(targetWordBias * float64(sampler.Leaves))})
 
-  // The least frequent words in our COCA corpus occur about 5000 times, so
-  // this value of 1000 provides only a small boost to unlikely words.
-  wordList := sampler.Sample(sampleSize, SamplerConfig{1000})
+  wordList := sampler.Sample(
+    numAvailableWords,
+    SamplerConfig{int64(availableWordBias * float64(sampler.Leaves))})
+
   sort.Sort(wordList)
 
-  return &Game{adjective.Words[0].Word, wordList}
+  return &Game{target.Words[0].Word, wordList}
 }
