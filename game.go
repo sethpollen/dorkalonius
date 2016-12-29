@@ -22,14 +22,15 @@ const (
   availableWordBias float64 = 3.04e-6
 )
 
-func NewGame(sampler *Index) *Game {
-  target := sampler.SampleAdjective(
+// TODO: always use the COCA set for generating the target word
+func NewGame(wordSet *Index) *Game {
+  target := wordSet.SampleAdjective(
     1,
-    SamplerConfig{int64(targetWordBias * float64(sampler.Leaves))})
+    SamplerConfig{int64(targetWordBias * float64(wordSet.Leaves))})
 
-  wordList := sampler.Sample(
+  wordList := wordSet.Sample(
     numAvailableWords,
-    SamplerConfig{int64(availableWordBias * float64(sampler.Leaves))})
+    SamplerConfig{int64(availableWordBias * float64(wordSet.Leaves))})
 
   sort.Sort(wordList)
 
