@@ -13,6 +13,8 @@ import (
 	"strings"
 )
 
+var memo = dorkalonius.NewMemo()
+
 // Fetches the COCA word list.
 func GetWordList() (*dorkalonius.WordList, error) {
 	reader := csv.NewReader(Get_coca_data("coca-5000.csv"))
