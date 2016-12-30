@@ -1,4 +1,5 @@
-// Tool for digesting corpora and producing word counts.
+// Tool for digesting corpora and producing word counts. Reads text from
+// stdin and then prints a report.
 
 package main
 
@@ -34,7 +35,6 @@ func main() {
 	}
 	sort.Sort(wordList)
 
-	for _, word := range wordList.Words {
-		fmt.Printf("%6d  %s\n", word.Occurrences, word.Word)
-	}
+	fmt.Printf("%d words\n%d occurrences\n",
+             wordList.Len(), wordList.TotalOccurrences)
 }
