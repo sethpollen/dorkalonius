@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/sethpollen/dorkalonius"
-	"github.com/sethpollen/dorkalonius/coca"
 	"log"
 	"math/rand"
 	"os"
@@ -37,11 +36,10 @@ func main() {
 	}
 	var err error
 
-	cocaWordList, err := coca.GetWordList()
+	sampler, err := dorkalonius.GetCocaIndex()
 	if err != nil {
 		log.Fatalln(err)
 	}
-	sampler := dorkalonius.NewIndex(cocaWordList)
 
 	if *outputDir == "" {
 		fmt.Println()
@@ -80,9 +78,13 @@ func main() {
 }
 
 func generateGame(sampler *dorkalonius.Index, out *os.File) error {
-	game := dorkalonius.NewGame(sampler)
+  var err error
 
-	var err error
+  game, err := dorkalonius.NewGame(sampler)
+  if err != nil {
+    return err
+  }
+
 	_, err = out.WriteString(fmt.Sprintf("TARGET WORD: %s\n\n",
 		game.TargetWord))
 	if err != nil {

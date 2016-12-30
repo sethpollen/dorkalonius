@@ -26,6 +26,14 @@ go_library(
 )
 
 go_test(
+    name = "memoize_test",
+    srcs = ["memoize_test.go"],
+    deps = [
+        ":go_default_library",
+    ],
+)
+
+go_test(
     name = "word_list_test",
     srcs = ["word_list_test.go"],
     deps = [

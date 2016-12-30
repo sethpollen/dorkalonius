@@ -14,14 +14,23 @@ import (
 
 // Fetches the COCA word list.
 func GetCocaWordList() (*WordList, error) {
-  list, err := memo.Get()
+  list, err := wordListMemo.Get()
   if err != nil {
     return nil, err
   }
   return list.(*WordList), nil
 }
 
-var memo = NewMemo(func() (interface{}, error) {
+// Fetches the COCA word sampler index, built from the COCA word list.
+func GetCocaIndex() (*Index, error) {
+  index, err := indexMemo.Get()
+  if err != nil {
+    return nil, err
+  }
+  return index.(*Index), nil
+}
+
+var wordListMemo = NewMemo(func() (interface{}, error) {
 	reader := csv.NewReader(Get_coca_data("coca-5000.csv"))
 	// Disable field count checking.
 	reader.FieldsPerRecord = -1
@@ -79,4 +88,12 @@ var memo = NewMemo(func() (interface{}, error) {
 
 	sort.Sort(wordList)
 	return wordList, nil
+})
+
+var indexMemo = NewMemo(func() (interface{}, error) {
+  list, err := GetCocaWordList()
+  if err != nil {
+    return nil, err
+  }
+  return NewIndex(list), nil
 })

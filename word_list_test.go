@@ -1,12 +1,12 @@
 package dorkalonius_test
 
 import (
-	"github.com/sethpollen/dorkalonius/coca"
 	"testing"
 )
+import . "github.com/sethpollen/dorkalonius"
 
 func TestGetWordList(t *testing.T) {
-	cocaWordList, err := coca.GetWordList()
+	cocaWordList, err := GetCocaWordList()
 	if err != nil {
 		t.Error(err)
 	}
