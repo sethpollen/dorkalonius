@@ -23,13 +23,13 @@ const (
 )
 
 func NewGame(wordSet *Index) (*Game, error) {
-  // Always use the COCA set for generating the target word, as it's the only
-  // set with accurate part-of-speech tagging.
-  cocaWords, err := GetCocaIndex()
-  if err != nil {
-    return nil, err
-  }
-  
+	// Always use the COCA set for generating the target word, as it's the only
+	// set with accurate part-of-speech tagging.
+	cocaWords, err := GetCocaIndex()
+	if err != nil {
+		return nil, err
+	}
+
 	target := cocaWords.SampleAdjective(
 		1,
 		SamplerConfig{int64(targetWordBias * float64(cocaWords.Leaves))})

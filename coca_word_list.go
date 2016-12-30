@@ -14,20 +14,20 @@ import (
 
 // Fetches the COCA word list.
 func GetCocaWordList() (*WordList, error) {
-  list, err := wordListMemo.Get()
-  if err != nil {
-    return nil, err
-  }
-  return list.(*WordList), nil
+	list, err := wordListMemo.Get()
+	if err != nil {
+		return nil, err
+	}
+	return list.(*WordList), nil
 }
 
 // Fetches the COCA word sampler index, built from the COCA word list.
 func GetCocaIndex() (*Index, error) {
-  index, err := indexMemo.Get()
-  if err != nil {
-    return nil, err
-  }
-  return index.(*Index), nil
+	index, err := indexMemo.Get()
+	if err != nil {
+		return nil, err
+	}
+	return index.(*Index), nil
 }
 
 var wordListMemo = NewMemo(func() (interface{}, error) {
@@ -91,9 +91,9 @@ var wordListMemo = NewMemo(func() (interface{}, error) {
 })
 
 var indexMemo = NewMemo(func() (interface{}, error) {
-  list, err := GetCocaWordList()
-  if err != nil {
-    return nil, err
-  }
-  return NewIndex(list), nil
+	list, err := GetCocaWordList()
+	if err != nil {
+		return nil, err
+	}
+	return NewIndex(list), nil
 })

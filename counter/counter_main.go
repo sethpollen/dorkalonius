@@ -36,5 +36,5 @@ func main() {
 	sort.Sort(wordList)
 
 	fmt.Printf("%d words\n%d occurrences\n",
-             wordList.Len(), wordList.TotalOccurrences)
+		wordList.Len(), wordList.TotalOccurrences)
 }

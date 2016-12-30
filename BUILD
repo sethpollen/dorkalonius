@@ -1,5 +1,10 @@
-load("@io_bazel_rules_go//go:def.bzl",
-     "go_prefix", "go_binary", "go_library", "go_test")
+load(
+    "@io_bazel_rules_go//go:def.bzl",
+    "go_prefix",
+    "go_binary",
+    "go_library",
+    "go_test",
+)
 
 go_prefix("github.com/sethpollen/dorkalonius")
 
@@ -14,13 +19,13 @@ go_embed_data(
 go_library(
     name = "go_default_library",
     srcs = [
-        ":coca_data",
         "coca_word_list.go",
         "game.go",
         "memoize.go",
         "sampler.go",
         "sleep.go",
         "word_list.go",
+        ":coca_data",
     ],
     visibility = ["//visibility:public"],
 )

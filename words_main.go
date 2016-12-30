@@ -78,12 +78,12 @@ func main() {
 }
 
 func generateGame(sampler *dorkalonius.Index, out *os.File) error {
-  var err error
+	var err error
 
-  game, err := dorkalonius.NewGame(sampler)
-  if err != nil {
-    return err
-  }
+	game, err := dorkalonius.NewGame(sampler)
+	if err != nil {
+		return err
+	}
 
 	_, err = out.WriteString(fmt.Sprintf("TARGET WORD: %s\n\n",
 		game.TargetWord))
