@@ -31,7 +31,7 @@ Twain
 )
 
 func TestBasic(t *testing.T) {
-	for bufSize := 1; bufSize <= maxBufSize; bufSize *= 2 {
+	for bufSize := 1; bufSize <= maxBufSize; bufSize++ {
 		log.Printf("bufSize = %d", bufSize)
 		reader := NewEbookReader(strings.NewReader(goodEbook))
 		buf := make([]byte, maxBufSize)
