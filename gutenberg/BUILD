@@ -5,6 +5,7 @@ go_library(
     srcs = [
         "ebook_reader.go",
     ],
+    visibility = ["//visibility:public"],
 )
 
 go_test(

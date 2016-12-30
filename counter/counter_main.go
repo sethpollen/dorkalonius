@@ -9,11 +9,16 @@ import (
   "fmt"
 	"github.com/sethpollen/dorkalonius"
 	"github.com/sethpollen/dorkalonius/counter"
-	"github.com/sethpollen/dorkalonius/wiktionary"
+  "github.com/sethpollen/dorkalonius/gutenberg"
+  "github.com/sethpollen/dorkalonius/wiktionary"
+  "io"
 	"log"
 	"os"
 	"sort"
 )
+
+var gutenbergEbook = flag.Bool("gutenberg_ebook", false,
+  "If true, interpret input files as Project Gutenberg ebooks.")
 
 // Accepts a list of input files as command-line arguments.
 func main() {
@@ -50,6 +55,9 @@ func main() {
       // We drop words which occur only once in the whole corpus. These are
       // likely not to be real words at all, but rather misrecognized patterns
       // like "foo--bar".
+      //
+      // TODO: Make some more clever logic to drop any words with "--" in the
+      // mindle.
       continue
     }
 		wordList.AddWord(dorkalonius.Word{wordStr, occurrences, false})
@@ -65,10 +73,17 @@ func main() {
 
 func worker(filename string, wordChan chan string,
             inflectionMap *wiktionary.InflectionMap) {
-  input, err := os.Open(filename)
+  var input io.Reader
+  var err error
+  input, err = os.Open(filename)
   if err != nil {
     log.Fatalln(err)
   }
+  
+  if *gutenbergEbook {
+    input = gutenberg.NewEbookReader(input)
+  }
+  
   counter.ProcessWords(input, func(word string) error {
     word = inflectionMap.GetBaseWord(word)
     if len(word) == 0 {
