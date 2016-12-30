@@ -5,32 +5,24 @@ package dorkalonius
 
 import (
 	"encoding/csv"
-	"fmt"
 	"io"
+  "log"
 	"sort"
 	"strconv"
 	"strings"
 )
 
 // Fetches the COCA word list.
-func GetCocaWordList() (*WordList, error) {
-	list, err := wordListMemo.Get()
-	if err != nil {
-		return nil, err
-	}
-	return list.(*WordList), nil
+func GetCocaWordList() *WordList {
+	return wordListMemo.Get().(*WordList)
 }
 
 // Fetches the COCA word sampler index, built from the COCA word list.
-func GetCocaIndex() (*Index, error) {
-	index, err := indexMemo.Get()
-	if err != nil {
-		return nil, err
-	}
-	return index.(*Index), nil
+func GetCocaIndex() *Index {
+	return indexMemo.Get().(*Index)
 }
 
-var wordListMemo = NewMemo(func() (interface{}, error) {
+var wordListMemo = NewMemo(func() interface{} {
 	reader := csv.NewReader(Get_coca_data("coca-5000.csv"))
 	// Disable field count checking.
 	reader.FieldsPerRecord = -1
@@ -46,20 +38,20 @@ var wordListMemo = NewMemo(func() (interface{}, error) {
 			break
 		}
 		if err != nil {
-			return nil, err
+			log.Fatalln(err)
 		}
 		if i < 2 {
 			// Skip the first 2 lines; they are headers.
 			continue
 		}
 		if len(record) != 5 {
-			return nil, fmt.Errorf(
+			log.Fatalln(
 				"Wrong number of columns (", len(record), ") on line ", i)
 		}
 
 		occurrences, err := strconv.ParseInt(record[3], 10, 64)
 		if err != nil {
-			return nil, fmt.Errorf("Invalid occurrences on line ", i)
+			log.Fatalln("Invalid occurrences on line ", i)
 		}
 		word := record[1]
 		partOfSpeech := record[2]
@@ -87,13 +79,9 @@ var wordListMemo = NewMemo(func() (interface{}, error) {
 	}
 
 	sort.Sort(wordList)
-	return wordList, nil
+	return wordList
 })
 
-var indexMemo = NewMemo(func() (interface{}, error) {
-	list, err := GetCocaWordList()
-	if err != nil {
-		return nil, err
-	}
-	return NewIndex(list), nil
+var indexMemo = NewMemo(func() interface{} {
+	return NewIndex(GetCocaWordList())
 })

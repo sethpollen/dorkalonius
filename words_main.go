@@ -36,10 +36,7 @@ func main() {
 	}
 	var err error
 
-	sampler, err := dorkalonius.GetCocaIndex()
-	if err != nil {
-		log.Fatalln(err)
-	}
+	sampler := dorkalonius.GetCocaIndex()
 
 	if *outputDir == "" {
 		fmt.Println()
