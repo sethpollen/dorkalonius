@@ -52,6 +52,9 @@ func NewWordSet() WordSet {
 // Checks invariants and crashes if any are found.
 func (self WordSet) Check() {
   if self.root != nil {
+    if red(self.root) {
+      log.Fatal("Root is red")
+    }
     self.root.Check()
   }
 }
