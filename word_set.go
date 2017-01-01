@@ -105,40 +105,34 @@ func (self WordSet) Add(word WeightedWord) {
 
 // Returns the black depth of the subtree rooted at this node.
 func (self *node) Check() int {
-  if IsLeaf() {
-    if self.Left != nil || self.Right != nil {
-      log.Fatal("Leaf has a child")
+  if self.Left == nil && self.Right == nil {
+    if self.SubtreeNodes != 1 {
+      log.Fatalf("Leaf has wrong SubtreeNodes: %d", self.SubtreeNodes)
     }
-    if self.Leaves != 1 {
-      log.Fatalf("Leaf has Leaves != 1: %d", self.Leaves)
+    if self.SubtreeWeight != self.Word.Weight {
+      log.Fatal("Leaf has wrong SubtreeWeight")
     }
-    if !self.Black {
-      log.Fatal("Leaf is red")
-    }
-    return 1
   }
   
-  if !self.Black {
-    if !self.Left.Black || !self.Right.Black {
-      log.Fatal("Red node has a red child")
-    }
+  if red(self) && (red(self.Left) || red(self.Right)) {
+    log.Fatal("Red node has a red child")
   }
   
   // Nil nodes are considered black and so have a black depth of 1.
   var leftBlackDepth int = 1
   var rightBlackDepth int = 1
   if self.Left != nil {
-    leftBlackDepth := self.Left.Check()
+    leftBlackDepth = self.Left.Check()
   }
   if self.Right != nil {
-    rightBlackDepth := self.Right.Check()
+    rightBlackDepth = self.Right.Check()
   }
   if leftBlackDepth != rightBlackDepth {
-    log.Fatal("Unbalanced black depth")
+    log.Fatal("Unequal black depths")
   }
   
   blackDepth := leftBlackDepth
-  if self.Black {
+  if black(self) {
     blackDepth++
   }
   return blackDepth
@@ -146,6 +140,17 @@ func (self *node) Check() int {
 
 // Red-black tree insertion based on code from
 // https://en.wikipedia.org/wiki/Red%E2%80%93black_tree.
+
+func black(n *node) bool {
+  if n == nil {
+    return true
+  }
+  return n.Black
+}
+
+func red(n *node) bool {
+  return !black(n)
+}
 
 func grandparent(n *node) *node {
   if n != nil && n.Parent != nil {
