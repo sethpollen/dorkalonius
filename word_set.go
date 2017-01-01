@@ -51,98 +51,121 @@ func NewWordSet() WordSet {
 
 // Checks invariants and crashes if any are found.
 func (self WordSet) Check() {
-  if self.root != nil {
-    if red(self.root) {
-      log.Fatal("Root is red")
-    }
-    self.root.Check()
+  if self.root == nil {
+    return
   }
+  if red(self.root) {
+    log.Fatal("Root is red")
+  }
+  check(self.root)
 }
 
 func (self WordSet) Add(word WeightedWord) {
-  if self.root == nil {
-    self.root = newLeafNode(nil, word)
-    self.root.Black = true
-    return
-  }
-  
   var newNode *node = nil
-  cur := self.root
-  for {
-    // No matter what happens, we are adding this weight somewhere.
-    cur.SubtreeWeight += word.Weight
 
-    c := strings.Compare(word.Word, cur.Word.Word)
-    if c == 0 {
-      cur.Word.Weight += word.Weight
-      // No need to insert any new nodes, so no need to rebalance. We
-      // are done.
-      return
-    }
-    
-    // We will have to add a new node.
-    cur.SubtreeNodes += 1
+  if self.root == nil {
+    newNode = newLeafNode(nil, word)
+    self.root = newNode
+  } else {
+    cur := self.root
+    for {
+      // No matter what happens, we are adding this weight somewhere.
+      cur.SubtreeWeight += word.Weight
 
-    if c < 0 {
-      if cur.Left == nil {
-        newNode = newLeafNode(cur, word)
-        cur.Left = newNode
-        break
+      c := strings.Compare(word.Word, cur.Word.Word)
+      if c == 0 {
+        cur.Word.Weight += word.Weight
+        // No need to insert any new nodes, so no need to rebalance. We
+        // are done.
+        return
       }
-      cur = cur.Left
-    } else {
+      
+      // We will have to add a new node.
+      cur.SubtreeNodes += 1
+
+      if c < 0 {
+        if cur.Left == nil {
+          newNode = newLeafNode(cur, word)
+          cur.Left = newNode
+          break
+        }
+        cur = cur.Left
+        continue
+      }
+      
+      // c > 0
       if cur.Right == nil {
         newNode = newLeafNode(cur, word)
         cur.Right = newNode
         break
       }
       cur = cur.Right
+      continue
     }
   }
+
+  updateSubtreeCounts(newNode)
   
-  // We must now rebalance after the insertion of 'newNode'.
+  // We must now rebalance after the insertion of 'newNode'. This logic is
+  // based on code from https://en.wikipedia.org/wiki/Red%E2%80%93black_tree.
+  insertCase1(newNode)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // HELPERS
 
 // Returns the black depth of the subtree rooted at this node.
-func (self *node) Check() int {
-  if self.Left == nil && self.Right == nil {
-    if self.SubtreeNodes != 1 {
-      log.Fatalf("Leaf has wrong SubtreeNodes: %d", self.SubtreeNodes)
-    }
-    if self.SubtreeWeight != self.Word.Weight {
-      log.Fatal("Leaf has wrong SubtreeWeight")
-    }
+func check(n *node) int {
+  if n == nil {
+    // Nil nodes are considered black and so have a black depth of 1.
+    return 1
   }
   
-  if red(self) && (red(self.Left) || red(self.Right)) {
+  if red(n) && (red(n.Left) || red(n.Right)) {
     log.Fatal("Red node has a red child")
   }
   
-  // Nil nodes are considered black and so have a black depth of 1.
-  var leftBlackDepth int = 1
-  var rightBlackDepth int = 1
-  if self.Left != nil {
-    leftBlackDepth = self.Left.Check()
+  if n.Left != nil {
+    if n.Left.Parent != n {
+      log.Fatal("Bad parent link")
+    }
   }
-  if self.Right != nil {
-    rightBlackDepth = self.Right.Check()
+  if n.Right != nil {
+    if n.Right.Parent != n {
+      log.Fatal("Bad parent link")
+    }
   }
+  
+  if n.SubtreeNodes != subtreeNodes(n.Left) + subtreeNodes(n.Right) + 1 {
+    log.Fatal("Bad SubtreeNodes")
+  }
+  if n.SubtreeWeight != subtreeWeight(n.Left) + subtreeWeight(n.Right) +
+     n.Word.Weight {
+    log.Fatal("Bad SubtreeWeight")
+  }
+  
+  leftBlackDepth := check(n.Left)
+  rightBlackDepth := check(n.Right)
   if leftBlackDepth != rightBlackDepth {
     log.Fatal("Unequal black depths")
   }
   
   blackDepth := leftBlackDepth
-  if black(self) {
+  if black(n) {
     blackDepth++
   }
   return blackDepth
 }
 
-// Red-black tree insertion based on code from
-// https://en.wikipedia.org/wiki/Red%E2%80%93black_tree.
+// Updates subtree counts at 'n' and all of its ancestors.
+func updateSubtreeCounts(n *node) {
+  for n != nil {
+    n.SubtreeNodes = subtreeNodes(n.Left) + subtreeNodes(n.Right) + 1
+    n.SubtreeWeight = subtreeWeight(n.Left) + subtreeWeight(n.Right) +
+                      n.Word.Weight
+    n = n.Parent
+  }
+}
 
 func black(n *node) bool {
   if n == nil {
@@ -153,6 +176,20 @@ func black(n *node) bool {
 
 func red(n *node) bool {
   return !black(n)
+}
+
+func subtreeNodes(n *node) int64 {
+  if n == nil {
+    return 0
+  }
+  return n.SubtreeNodes
+}
+
+func subtreeWeight(n *node) int64 {
+  if n == nil {
+    return 0
+  }
+  return n.SubtreeWeight
 }
 
 func grandparent(n *node) *node {
