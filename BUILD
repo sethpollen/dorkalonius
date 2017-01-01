@@ -25,6 +25,7 @@ go_library(
         "sampler.go",
         "sleep.go",
         "word_list.go",
+        "word_set.go",
         ":coca_data",
     ],
     visibility = ["//visibility:public"],
