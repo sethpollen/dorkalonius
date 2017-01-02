@@ -55,7 +55,7 @@ var cocaSetsMemo = NewMemo(func() interface{} {
 		if err != nil {
 			log.Fatalln("Invalid occurrences on line ", i)
 		}
-		word := record[1]
+		word := strings.ToLower(record[1])
 		partOfSpeech := record[2]
 
 		if word == "n't" {

@@ -8,12 +8,21 @@ load(
 
 go_prefix("github.com/sethpollen/dorkalonius")
 
-load("//tools:go_embed_data.bzl", "go_embed_data")
+load("//tools:tools.bzl", "go_embed_data", "word_set")
 
+# TODO: remove and use word_set instead
 go_embed_data(
     name = "coca_data",
     data = ["coca-5000.csv"],
     package = "dorkalonius",
+)
+
+word_set(
+    name = "coca_data2",
+    srcs = ["coca-5000.csv"],
+    csv_header_lines = 2,
+    csv_word_column = 1,
+    csv_weight_column = 3,
 )
 
 go_library(
@@ -24,6 +33,7 @@ go_library(
         "memoize.go",
         "sleep.go",
         "word_set.go",
+        "word_set_builder.go",
         ":coca_data",
     ],
     visibility = ["//visibility:public"],

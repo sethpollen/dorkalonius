@@ -32,3 +32,10 @@ go_test(
     name = "go_embed_encoder_test",
     srcs = [":go_embed_encoder_test_genrule"],
 )
+
+go_binary(
+    name = "csv_to_word_set_main",
+    srcs = ["csv_to_word_set_main.go"],
+    visibility = ["//visibility:public"],
+    deps = ["//:go_default_library"]
+)

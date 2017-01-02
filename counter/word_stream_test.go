@@ -26,21 +26,21 @@ func TestWords(t *testing.T) {
 				t.Errorf("word: %q", word)
 			}
 			break
-    case 1:
-      if word != "joe" {
-        t.Errorf("word: %q", word)
-      }
-      break
-    case 2:
-      if word != "foo" {
-        t.Errorf("word: %q", word)
-      }
-      break
-    case 3:
-      if word != "bar" {
-        t.Errorf("word: %q", word)
-      }
-      break
+		case 1:
+			if word != "joe" {
+				t.Errorf("word: %q", word)
+			}
+			break
+		case 2:
+			if word != "foo" {
+				t.Errorf("word: %q", word)
+			}
+			break
+		case 3:
+			if word != "bar" {
+				t.Errorf("word: %q", word)
+			}
+			break
 		default:
 			t.Errorf("word: %q", word)
 			break

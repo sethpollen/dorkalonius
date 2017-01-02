@@ -1,5 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_binary")
-load("//tools:go_embed_data.bzl", "go_embed_data")
+load("//tools:tools.bzl", "go_embed_data")
 
 go_embed_data(
     name = "preference_data",

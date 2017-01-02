@@ -7,6 +7,7 @@ package dorkalonius
 // TODO: fast serialization
 
 import (
+  "bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -143,6 +144,14 @@ func (self WordSet) Sample(n int64, nodeBias int64) WordSet {
 		}
 	}
 	return sample
+}
+
+// TODO: test
+// TODO: check that we are doing ToLower in the right places
+func (self WordSet) PrettyPrint() string {
+  var buf bytes.Buffer
+  prettyPrint(self.root, "", &buf)
+  return buf.String()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -291,7 +300,7 @@ func (self *WordSet) rebalance(path []*node) {
 
 		imb := imbalance(n)
 		if abs(imb) > 2 {
-			log.Fatalf("Imbalance too large: %d", abs(i))
+			log.Fatalf("Imbalance too large: %d\n%s", abs(i), self.PrettyPrint())
 		}
 
 		if imb == 0 {
@@ -412,6 +421,25 @@ func abs(x int) int {
 		return -x
 	}
 	return x
+}
+
+func prettyPrint(n *node, indent string, dest io.Writer) error {
+  if n == nil {
+    header := fmt.Sprintf("%s+--\n", indent)
+    if _, err := dest.Write([]byte(header)); err != nil {
+      return err
+    }
+    return nil
+  }
+  
+  header := fmt.Sprintf("%s+-- %s\n", indent, n.Word.Word)
+  if _, err := dest.Write([]byte(header)); err != nil {
+    return err
+  }
+  
+  prettyPrint(n.Left, indent + "| ", dest)
+  prettyPrint(n.Right, indent + "  ", dest)
+  return nil
 }
 
 // Support sorting of WeightedWords.
