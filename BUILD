@@ -48,6 +48,14 @@ go_test(
 )
 
 go_test(
+    name = "word_set_test",
+    srcs = ["word_set_test.go"],
+    deps = [
+        ":go_default_library",
+    ],
+)
+
+go_test(
     name = "sampler_test",
     srcs = ["sampler_test.go"],
     deps = [
