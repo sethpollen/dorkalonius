@@ -29,49 +29,30 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	wordChan := make(chan string, 1000)
-
-	for _, filename := range flag.Args() {
-		go worker(filename, wordChan, inflectionMap)
+	responseChans := make([]chan dorkalonius.WordSet, flag.NArg())
+	for i, filename := range flag.Args() {
+    responseChans[i] = make(chan dorkalonius.WordSet)
+		go worker(inflectionMap, filename, responseChans[i])
 	}
 
 	// Collect outputs from workers.
-	wordCountMap := make(map[string]int64)
-	workersDone := 0
-	for workersDone < flag.NArg() {
-		word := <-wordChan
-		if len(word) == 0 {
-			// This is the sentinel value sent by a worker as it exits.
-			workersDone++
-			continue
-		}
-		wordCountMap[word]++
+	wordSet := dorkalonius.NewWordSet()
+	for _, responseChan := range responseChans {
+    wordSet.AddAll(<-responseChan)
 	}
-
-	words := dorkalonius.NewWordSet()
-	for wordStr, occurrences := range wordCountMap {
-		if occurrences <= 1 {
-			// We drop words which occur only once in the whole corpus. These are
-			// likely not to be real words at all, but rather misrecognized patterns
-			// like "foo--bar".
-			//
-			// TODO: Make some more clever logic to drop any words with "--" in the
-			// mindle.
-			continue
-		}
-		words.Add(dorkalonius.WeightedWord{wordStr, occurrences})
-	}
-	wordsSlice := words.GetWords()
 
 	csvWriter := csv.NewWriter(os.Stdout)
-	for _, word := range wordsSlice {
+	for _, word := range wordSet.GetWords() {
 		csvWriter.Write([]string{word.Word, fmt.Sprintf("%d", word.Weight)})
 	}
 	csvWriter.Flush()
 }
 
-func worker(filename string, wordChan chan string,
-	inflectionMap *wiktionary.InflectionMap) {
+func worker(
+  inflectionMap *wiktionary.InflectionMap,
+  filename string,
+  responseChan chan<- dorkalonius.WordSet) {
+
 	var input io.Reader
 	var err error
 	input, err = os.Open(filename)
@@ -83,14 +64,18 @@ func worker(filename string, wordChan chan string,
 		input = gutenberg.NewEbookReader(input)
 	}
 
-	counter.ProcessWords(input, func(word string) error {
+	wordSet := dorkalonius.NewWordSet()
+	err = counter.ProcessWords(input, func(word string) error {
 		word = inflectionMap.GetBaseWord(word)
 		if len(word) == 0 {
 			log.Fatalln("Empty word")
 		}
-		wordChan <- word
+		wordSet.Add(dorkalonius.WeightedWord{word, 1})
 		return nil
 	})
-	// Send a sentinel value to indicate that this worker is finished.
-	wordChan <- ""
+  if err != nil {
+    log.Fatalln(err)
+  }
+
+  responseChan <- wordSet
 }
