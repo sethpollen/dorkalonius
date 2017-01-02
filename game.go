@@ -19,10 +19,10 @@ const (
 )
 
 func NewTargetWord() string {
-  adjectives := GetCocaAdjectives()
-  adjective := adjectives.Sample(
-    1, int64(targetWordBias*float64(adjectives.Size())))
-  return adjective.GetWords()[0].Word
+	adjectives := GetCocaAdjectives()
+	adjective := adjectives.Sample(
+		1, int64(targetWordBias*float64(adjectives.Size())))
+	return adjective.GetWords()[0].Word
 }
 
 func NewGame(wordSet WordSet) *Game {

@@ -31,14 +31,14 @@ func main() {
 
 	responseChans := make([]chan dorkalonius.WordSet, flag.NArg())
 	for i, filename := range flag.Args() {
-    responseChans[i] = make(chan dorkalonius.WordSet)
+		responseChans[i] = make(chan dorkalonius.WordSet)
 		go worker(inflectionMap, filename, responseChans[i])
 	}
 
 	// Collect outputs from workers.
 	wordSet := dorkalonius.NewWordSet()
 	for _, responseChan := range responseChans {
-    wordSet.AddAll(<-responseChan)
+		wordSet.AddAll(<-responseChan)
 	}
 
 	csvWriter := csv.NewWriter(os.Stdout)
@@ -49,9 +49,9 @@ func main() {
 }
 
 func worker(
-  inflectionMap *wiktionary.InflectionMap,
-  filename string,
-  responseChan chan<- dorkalonius.WordSet) {
+	inflectionMap *wiktionary.InflectionMap,
+	filename string,
+	responseChan chan<- dorkalonius.WordSet) {
 
 	var input io.Reader
 	var err error
@@ -73,9 +73,9 @@ func worker(
 		wordSet.Add(dorkalonius.WeightedWord{word, 1})
 		return nil
 	})
-  if err != nil {
-    log.Fatalln(err)
-  }
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-  responseChan <- wordSet
+	responseChan <- wordSet
 }

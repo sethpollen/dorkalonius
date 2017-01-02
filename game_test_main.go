@@ -4,15 +4,15 @@
 package main
 
 import (
-  "fmt"
-  "github.com/sethpollen/dorkalonius"
-  "math/rand"
-  "time"
+	"fmt"
+	"github.com/sethpollen/dorkalonius"
+	"math/rand"
+	"time"
 )
 
 func main() {
-  rand.Seed(time.Now().UTC().UnixNano())
-  for i := 0; i < 40; i++ {
-    fmt.Println(dorkalonius.NewTargetWord())
-  }
+	rand.Seed(time.Now().UTC().UnixNano())
+	for i := 0; i < 40; i++ {
+		fmt.Println(dorkalonius.NewTargetWord())
+	}
 }
