@@ -36,11 +36,11 @@ func main() {
 	}
 	var err error
 
-	sampler := dorkalonius.GetCocaIndex()
+	words := dorkalonius.GetCocaWords()
 
 	if *outputDir == "" {
 		fmt.Println()
-		err = generateGame(sampler, os.Stdout)
+		err = generateGame(words, os.Stdout)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -67,7 +67,7 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		err = generateGame(sampler, out)
+		err = generateGame(words, out)
 		if err != nil {
 			log.Fatalln(err)
 		}

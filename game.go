@@ -2,13 +2,9 @@
 
 package dorkalonius
 
-import (
-	"sort"
-)
-
 type Game struct {
 	TargetWord     string
-	AvailableWords *WordList
+	AvailableWords []string
 }
 
 const (
@@ -18,24 +14,23 @@ const (
 	// in order to get something interesting. We use a much smaller bias
 	// for the available words, since we want them to mostly reflect a
 	// typical selection of words.
-	targetWordBias    float64 = 3.04e-3
-	availableWordBias float64 = 3.04e-6
+	// TODO: consider adjusting the targetWordBias
+	targetWordBias    float64 = 3e-4
+	availableWordBias float64 = 3e-6
 )
 
-func NewGame(wordSet *Index) (*Game, error) {
-	// Always use the COCA set for generating the target word, as it's the only
-	// set with accurate part-of-speech tagging.
-	cocaWords := GetCocaIndex()
+func NewGame(wordSet WordSet) (*Game, error) {
+	adjectives := GetCocaAdjectives()
+	adjective := adjectives.Sample(
+		1, int64(targetWordBias*float64(adjectives.Size()))).GetWords()
 
-	target := cocaWords.SampleAdjective(
-		1,
-		SamplerConfig{int64(targetWordBias * float64(cocaWords.Leaves))})
+	words := wordSet.Sample(numAvailableWords,
+		int64(availableWordBias*float64(wordSet.Size())))
+	wordsSlice := words.GetWords()
+	bareWords := make([]string, len(wordsSlice))
+	for i := range wordsSlice {
+		bareWords[i] = wordsSlice[i].Word
+	}
 
-	wordList := wordSet.Sample(
-		numAvailableWords,
-		SamplerConfig{int64(availableWordBias * float64(wordSet.Leaves))})
-
-	sort.Sort(wordList)
-
-	return &Game{target.Words[0].Word, wordList}, nil
+	return &Game{adjective[0].Word, bareWords}, nil
 }

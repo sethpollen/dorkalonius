@@ -22,9 +22,7 @@ go_library(
         "coca_word_list.go",
         "game.go",
         "memoize.go",
-        "sampler.go",
         "sleep.go",
-        "word_list.go",
         "word_set.go",
         ":coca_data",
     ],
@@ -40,24 +38,8 @@ go_test(
 )
 
 go_test(
-    name = "word_list_test",
-    srcs = ["word_list_test.go"],
-    deps = [
-        ":go_default_library",
-    ],
-)
-
-go_test(
     name = "word_set_test",
     srcs = ["word_set_test.go"],
-    deps = [
-        ":go_default_library",
-    ],
-)
-
-go_test(
-    name = "sampler_test",
-    srcs = ["sampler_test.go"],
     deps = [
         ":go_default_library",
     ],

@@ -7,22 +7,24 @@ import (
 	"encoding/csv"
 	"io"
 	"log"
-	"sort"
 	"strconv"
 	"strings"
 )
 
-// Fetches the COCA word list.
-func GetCocaWordList() *WordList {
-	return wordListMemo.Get().(*WordList)
+func GetCocaWords() WordSet {
+	return cocaSetsMemo.Get().(cocaSets).AllWords
 }
 
-// Fetches the COCA word sampler index, built from the COCA word list.
-func GetCocaIndex() *Index {
-	return indexMemo.Get().(*Index)
+func GetCocaAdjectives() WordSet {
+	return cocaSetsMemo.Get().(cocaSets).Adjectives
 }
 
-var wordListMemo = NewMemo(func() interface{} {
+type cocaSets struct {
+	AllWords   WordSet
+	Adjectives WordSet
+}
+
+var cocaSetsMemo = NewMemo(func() interface{} {
 	reader := csv.NewReader(Get_coca_data("coca-5000.csv"))
 	// Disable field count checking.
 	reader.FieldsPerRecord = -1
@@ -30,7 +32,7 @@ var wordListMemo = NewMemo(func() interface{} {
 	// Our raw data may contain 2 lines with the same word if that word can be
 	// used as more than one part of speech. We just add the occurrence counts
 	// of these lines together.
-	var wordSet = make(map[string]*Word)
+	var sets = &cocaSets{NewWordSet(), NewWordSet()}
 
 	for i := 0; true; i++ {
 		record, err := reader.Read()
@@ -56,32 +58,16 @@ var wordListMemo = NewMemo(func() interface{} {
 		word := record[1]
 		partOfSpeech := record[2]
 
-		// Blacklist specific words we don't like from the data file.
 		if word == "n't" {
-			continue
+			word = "not"
 		}
 		adjective := strings.Index(partOfSpeech, "j") >= 0
 
-		if existing, found := wordSet[word]; found {
-			existing.Occurrences += occurrences
-			if adjective {
-				existing.Adjective = true
-			}
-		} else {
-			wordSet[word] = &Word{word, occurrences, adjective}
+		sets.AllWords.Add(WeightedWord{word, occurrences})
+		if adjective {
+			sets.Adjectives.Add(WeightedWord{word, occurrences})
 		}
 	}
 
-	// Convert the map to a WordList object.
-	wordList := NewWordList()
-	for _, word := range wordSet {
-		wordList.AddWord(*word)
-	}
-
-	sort.Sort(wordList)
-	return wordList
-})
-
-var indexMemo = NewMemo(func() interface{} {
-	return NewIndex(GetCocaWordList())
+	return sets
 })

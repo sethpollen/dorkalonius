@@ -113,28 +113,30 @@ func TestSample(t *testing.T) {
 	w.Add(WeightedWord{"e", 16})
 	w.Add(WeightedWord{"c", 32})
 
-	s := w.Sample(6)
+	s := w.Sample(6, 0)
 	if !wordSetsEqual(s, w) {
 		t.Error()
 	}
 
-	counts := make(map[string]int)
-	for i := 0; i < 10000; i++ {
-		s = w.Sample(2)
-		if s.Size() != 2 {
-			t.Error("Size: expected %d, got %d", 2, s.Size())
+	for _, bias := range []int64{0, 10000} {
+		counts := make(map[string]int)
+		for i := 0; i < 10000; i++ {
+			s = w.Sample(2, bias)
+			if s.Size() != 2 {
+				t.Error("Size: expected %d, got %d", 2, s.Size())
+			}
+			for _, word := range s.GetWords() {
+				counts[word.Word]++
+			}
 		}
-		for _, word := range s.GetWords() {
-			counts[word.Word]++
-		}
-	}
 
-	// Do some rough probability checks.
-	if counts["c"] < 5000 {
-		t.Error("\"c\" should have been picked roughly 50% of the time")
-	}
-	if counts["e"] < 2500 {
-		t.Error("\"e\" should have been picked roughly 25% of the time")
+		// Do some rough probability checks.
+		if counts["c"] < 5000 {
+			t.Error("\"c\" should have been picked roughly 50% of the time")
+		}
+		if counts["e"] < 2500 {
+			t.Error("\"e\" should have been picked roughly 25% of the time")
+		}
 	}
 }
 

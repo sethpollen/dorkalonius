@@ -4,6 +4,8 @@
 
 package dorkalonius
 
+// TODO: fast serialization
+
 import (
 	"bytes"
 	"fmt"
@@ -128,10 +130,9 @@ func (self WordSet) GetWords() []WeightedWord {
 	return words
 }
 
-// TODO: test
 // Randomly samples 'n' words from this WordSet (using their Weights) and returns
-// those words.
-func (self WordSet) Sample(n int64) WordSet {
+// those words. 'nodeBias' will be added to every node's weight.
+func (self WordSet) Sample(n int64, nodeBias int64) WordSet {
 	if n > self.Size() {
 		log.Fatalf("Cannot sample %d words from a WordSet of size %d",
 			n, self.Size())
@@ -145,17 +146,19 @@ func (self WordSet) Sample(n int64) WordSet {
 		point := rand.Int63n(self.Weight())
 		cur := self.root
 		for {
-			if point < subtreeWeight(cur.Left) {
+			leftWeight := subtreeWeight(cur.Left) + nodeBias*subtreeSize(cur.Left)
+			if point < leftWeight {
 				cur = cur.Left
 				continue
 			}
-			point -= subtreeWeight(cur.Left)
+			point -= leftWeight
 
-			if point < cur.Word.Weight {
+			curWeight := cur.Word.Weight + nodeBias
+			if point < curWeight {
 				sample.Insert(cur.Word)
 				break
 			}
-			point -= cur.Word.Weight
+			point -= curWeight
 
 			cur = cur.Right
 		}

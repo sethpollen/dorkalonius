@@ -14,7 +14,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"sort"
 )
 
 var gutenbergEbook = flag.Bool("gutenberg_ebook", false,
@@ -49,7 +48,7 @@ func main() {
 		wordCountMap[word]++
 	}
 
-	wordList := dorkalonius.NewWordList()
+	words := dorkalonius.NewWordSet()
 	for wordStr, occurrences := range wordCountMap {
 		if occurrences <= 1 {
 			// We drop words which occur only once in the whole corpus. These are
@@ -60,13 +59,13 @@ func main() {
 			// mindle.
 			continue
 		}
-		wordList.AddWord(dorkalonius.Word{wordStr, occurrences, false})
+		words.Add(dorkalonius.WeightedWord{wordStr, occurrences})
 	}
-	sort.Sort(wordList)
+	wordsSlice := words.GetWords()
 
 	csvWriter := csv.NewWriter(os.Stdout)
-	for _, word := range wordList.Words {
-		csvWriter.Write([]string{word.Word, fmt.Sprintf("%d", word.Occurrences)})
+	for _, word := range wordsSlice {
+		csvWriter.Write([]string{word.Word, fmt.Sprintf("%d", word.Weight)})
 	}
 	csvWriter.Flush()
 }
