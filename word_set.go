@@ -54,6 +54,15 @@ func (self *WordSet) Check() {
     return
   }
   self.check(self.root)
+  
+  // Check overall sortedness.
+  var last string = ""
+  visit(self.root, 0, func(n *node, depth int) {
+    if last != "" && strings.Compare(last, n.Word.Word) >= 0 {
+      log.Fatal("Not sorted")
+    }
+    last = n.Word.Word    
+  })
 }
 
 func (self *WordSet) DebugString() string {
@@ -85,6 +94,10 @@ func (self *WordSet) Size() int64 {
   return subtreeSize(self.root)
 }
 
+func (self *WordSet) Weight() int64 {
+  return subtreeWeight(self.root)
+}
+
 func (self *WordSet) Add(word WeightedWord) {
   if self.root == nil {
     self.root = newLeafNode(word)
@@ -98,9 +111,9 @@ func (self *WordSet) Add(word WeightedWord) {
     c := strings.Compare(word.Word, cur.Word.Word)
     if c == 0 {
       cur.Word.Weight += word.Weight
-      // No need to insert any new nodes, so no need to rebalance. We
-      // are done.
-      return
+      // We didn't actually insert any nodes, but we break to the rebalance
+      // call anyway in order to update subtree counts.
+      break
     }
     
     if c < 0 {
@@ -145,21 +158,30 @@ func (self *WordSet) check(n *node) {
     }
   }
     
-  if n.SubtreeHeight !=
-     max(subtreeHeight(n.Left), subtreeHeight(n.Right)) + 1 {
-    log.Fatal("Bad SubtreeHeight")
-  }
-  if n.SubtreeSize != subtreeSize(n.Left) + subtreeSize(n.Right) + 1 {
-    log.Fatal("Bad SubtreeSize")
-  }
-  if n.SubtreeWeight !=
-     subtreeWeight(n.Left) + subtreeWeight(n.Right) + n.Word.Weight {
-    log.Fatal("Bad SubtreeWeight")
+  expectedSubtreeHeight :=
+      max(subtreeHeight(n.Left), subtreeHeight(n.Right)) + 1
+  if n.SubtreeHeight != expectedSubtreeHeight {
+    log.Fatalf("Bad SubtreeHeight for %q: Expected %d, got %d",
+               n.Word.Word, expectedSubtreeHeight, n.SubtreeHeight)
   }
   
-  i := imbalance(n)
-  if abs(i) > 1 {
-    log.Fatalf("Too much imbalance (%d):\n%s", i, self.DebugString())
+  expectedSubtreeSize :=
+      subtreeSize(n.Left) + subtreeSize(n.Right) + 1
+  if n.SubtreeSize != expectedSubtreeSize {
+    log.Fatalf("Bad SubtreeSize for %q: Expected %d, got %d",
+               n.Word.Word, expectedSubtreeSize, n.SubtreeSize)
+  }
+  
+  expectedSubtreeWeight :=
+      subtreeWeight(n.Left) + subtreeWeight(n.Right) + n.Word.Weight
+  if n.SubtreeWeight != expectedSubtreeWeight {
+    log.Fatalf("Bad SubtreeWeight for %q: Expected %d, got %d",
+               n.Word.Word, expectedSubtreeWeight, n.SubtreeWeight)
+  }
+  
+  imb := imbalance(n)
+  if abs(imb) > 1 {
+    log.Fatalf("Too much imbalance (%d):\n%s", imb, self.DebugString())
   }
   
   self.check(n.Left)
@@ -174,33 +196,49 @@ func updateSubtreeInfo(n *node) {
 }
 
 func (self *WordSet) rebalance(path []*node) {
-  fmt.Printf("\n") // TODO:
-  fmt.Printf("%s", self.DebugString()) // TODO:
-  fmt.Printf("\n") // TODO:
-
-  for ; len(path) > 0; path = path[0:len(path)-1] {
-    n := path[len(path)-1]
+  for i := len(path)-1; i >= 0; i-- {
+    n := path[i]
     
     // Propagate any changes from the last iteration.
     updateSubtreeInfo(n)
 
-    i := imbalance(n)
-    if abs(i) <= 1 {
-      // The imbalance at this level is tolerable.
-      fmt.Printf("Not rebalancing %s\n", n.Word.Word) // TODO:
-      continue
-    }
-    if abs(i) > 2 {
+    imb := imbalance(n)
+    if abs(imb) > 2 {
       log.Fatalf("Imbalance too large: %d", abs(i))
     }
-    fmt.Printf("Rebalancing %s\n", n.Word.Word) // TODO:
 
+    if imb == 0 {
+      // No imbalance.
+      continue
+    }
+    if i == 0 {
+      if imb == 1 || imb == -1 {
+        // We are OK with +-1 imbalance at the root.
+        continue
+      }
+    } else {
+      parent := path[i-1]
+      if n == parent.Left {
+        if imb == -1 {
+          // We are OK with a heaver left subtree for a node which is on the
+          // left side of its parent.
+          continue
+        }
+      } else {
+        if imb == 1 {
+          // We are OK with a heaver right subtree for a node which is on
+          // the right side of its parent.
+          continue
+        }
+      }
+    }
+    
     // Find the pointer used by n's parent to refer to n.
     var parentPtr **node
-    if len(path) == 1 {
+    if i == 0 {
       parentPtr = &self.root
     } else {
-      parent := path[len(path)-2]
+      parent := path[i-1]
       if parent.Left == n {
         parentPtr = &parent.Left
       } else {
@@ -208,8 +246,9 @@ func (self *WordSet) rebalance(path []*node) {
       }
     }
     
+    // Perform the rotation.
     var child *node
-    if i < 0 {
+    if imb < 0 {
       // The left subtree is too tall.
       child = n.Left
       n.Left = child.Right
@@ -222,18 +261,9 @@ func (self *WordSet) rebalance(path []*node) {
     }
     *parentPtr = child
     
-    // Sanity check that 'child' is now the parent of 'n'.
-    if child.Left != n && child.Right != n {
-      log.Fatal("Incorrect rotation")
-    }
-    
     updateSubtreeInfo(n)
     updateSubtreeInfo(child)
   }
-
-  fmt.Printf("\n") // TODO:
-  fmt.Printf("%s", self.DebugString()) // TODO:
-  fmt.Printf("\n") // TODO:
 }
 
 func visit(n *node, depth int, visitor func(n *node, depth int)) {
