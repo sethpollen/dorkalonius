@@ -12,11 +12,11 @@ import (
 )
 
 func GetCocaWords() WordSet {
-	return cocaSetsMemo.Get().(cocaSets).AllWords
+	return cocaSetsMemo.Get().(*cocaSets).AllWords
 }
 
 func GetCocaAdjectives() WordSet {
-	return cocaSetsMemo.Get().(cocaSets).Adjectives
+	return cocaSetsMemo.Get().(*cocaSets).Adjectives
 }
 
 type cocaSets struct {
