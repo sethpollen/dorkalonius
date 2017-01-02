@@ -19,18 +19,28 @@ func TestEmpty(t *testing.T) {
 
 func TestWords(t *testing.T) {
 	var counter int = 0
-	ProcessWords(strings.NewReader("Hey, :joe! 89"), func(word string) error {
+	ProcessWords(strings.NewReader("Hey, :joe! 89 foo--bar"), func(word string) error {
 		switch counter {
 		case 0:
 			if word != "hey" {
 				t.Errorf("word: %q", word)
 			}
 			break
-		case 1:
-			if word != "joe" {
-				t.Errorf("word: %q", word)
-			}
-			break
+    case 1:
+      if word != "joe" {
+        t.Errorf("word: %q", word)
+      }
+      break
+    case 2:
+      if word != "foo" {
+        t.Errorf("word: %q", word)
+      }
+      break
+    case 3:
+      if word != "bar" {
+        t.Errorf("word: %q", word)
+      }
+      break
 		default:
 			t.Errorf("word: %q", word)
 			break
@@ -38,7 +48,7 @@ func TestWords(t *testing.T) {
 		counter++
 		return nil
 	})
-	if counter != 2 {
+	if counter != 4 {
 		t.Errorf("counter: %d", counter)
 	}
 }
