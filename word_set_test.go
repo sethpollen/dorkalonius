@@ -1,6 +1,7 @@
 package dorkalonius_test
 
 import (
+	"bytes"
 	"strings"
 	"testing"
 )
@@ -8,7 +9,10 @@ import . "github.com/sethpollen/dorkalonius"
 
 func TestBasic(t *testing.T) {
 	w := NewWordSet()
-	w.Check()
+	if err := w.Check(); err != nil {
+		t.Error(err)
+		return
+	}
 
 	size := w.Size()
 	if size != 0 {
@@ -22,7 +26,28 @@ func TestBasic(t *testing.T) {
 	for i, word := range strings.Split(
 		"and again the quick brown fox jumps over the lazy dog", " ") {
 		w.Add(WeightedWord{word, int64(i + 1)})
-		w.Check()
+
+		if err := w.Check(); err != nil {
+			t.Error(err)
+			return
+		}
+
+		var buf bytes.Buffer
+		if err := w.Serialize(&buf); err != nil {
+			t.Error(err)
+			return
+		}
+		if buf.Len() == 0 {
+			t.Error("Serialize produced empty buffer")
+			return
+		}
+		deserialized, err := DeserializeWordSet(&buf)
+		if err != nil {
+			t.Error(err)
+		}
+		if !wordSetsEqual(w, *deserialized) {
+			t.Error("Serialization/deserialization not faithful")
+		}
 	}
 
 	size = w.Size()
@@ -89,7 +114,10 @@ func TestAddAll(t *testing.T) {
 	w2.Add(WeightedWord{"f", 12})
 
 	w1.AddAll(w2)
-	w1.Check()
+	if err := w1.Check(); err != nil {
+		t.Error(err)
+		return
+	}
 
 	expected := NewWordSet()
 	expected.Add(WeightedWord{"a", 16})
@@ -124,33 +152,37 @@ func TestSample(t *testing.T) {
 			s = w.Sample(2, bias)
 			if s.Size() != 2 {
 				t.Error("Size: expected %d, got %d", 2, s.Size())
-        return
+				return
 			}
 			for _, word := range s.GetWords() {
 				counts[word.Word]++
 			}
 		}
 
+		if len(counts) < 6 {
+			t.Error("Not all words were sampled")
+		}
+
 		// Do some rough probability checks.
 		expectedCountC := 10000
 		expectedCountE := 5000
 		if bias > 0 {
-      expectedCountC = 20000 / 6
-      expectedCountE = 20000 / 6
-    }
-		
-    if counts["c"] < expectedCountC / 2 {
-      t.Error("Count for \"c\" too small")
-    }
-    if counts["c"] > expectedCountC * 2 {
-      t.Error("Count for \"c\" too large")
-    }
-    if counts["e"] < expectedCountE / 2 {
-      t.Error("Count for \"e\" too small")
-    }
-    if counts["e"] > expectedCountE * 2 {
-      t.Error("Count for \"e\" too large")
-    }
+			expectedCountC = 20000 / 6
+			expectedCountE = 20000 / 6
+		}
+
+		if counts["c"] < expectedCountC/2 {
+			t.Error("Count for \"c\" too small")
+		}
+		if counts["c"] > expectedCountC*2 {
+			t.Error("Count for \"c\" too large")
+		}
+		if counts["e"] < expectedCountE/2 {
+			t.Error("Count for \"e\" too small")
+		}
+		if counts["e"] > expectedCountE*2 {
+			t.Error("Count for \"e\" too large")
+		}
 	}
 }
 

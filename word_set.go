@@ -7,8 +7,10 @@ package dorkalonius
 // TODO: fast serialization
 
 import (
-	"bytes"
+	"encoding/binary"
+	"errors"
 	"fmt"
+	"io"
 	"log"
 	"math/rand"
 	"sort"
@@ -52,46 +54,25 @@ func NewWordSet() WordSet {
 ///////////////////////////////////////////////////////////////////////////////
 // PUBLIC API
 
-// Checks invariants and crashes if any are found.
-func (self WordSet) Check() {
-	if self.root == nil {
-		return
+// Checks invariants and returns an error if any are found.
+func (self WordSet) Check() error {
+	if err := self.check(self.root); err != nil {
+		return err
 	}
-	self.check(self.root)
 
 	// Check overall sortedness.
 	var last string = ""
+	var err error = nil
 	visit(self.root, 0, func(n *node, depth int) {
+		if err != nil {
+			return
+		}
 		if last != "" && strings.Compare(last, n.Word.Word) >= 0 {
-			log.Fatal("Not sorted")
+			err = errors.New("Not ordered")
 		}
 		last = n.Word.Word
 	})
-}
-
-func (self WordSet) DebugString() string {
-	// Add 1 to the height so we can print unbalanced trees.
-	rows := make([]bytes.Buffer, subtreeHeight(self.root)+1)
-	visit(self.root, 0, func(n *node, depth int) {
-		if _, err := rows[depth].WriteString(
-			fmt.Sprintf("%s:%d ", n.Word.Word, children(n))); err != nil {
-			log.Fatal(err)
-		}
-	})
-
-	var all bytes.Buffer
-	for _, row := range rows {
-		if row.Len() == 0 {
-			break
-		}
-		if _, err := row.WriteTo(&all); err != nil {
-			log.Fatal(err)
-		}
-		if _, err := all.WriteString("\n"); err != nil {
-			log.Fatal(err)
-		}
-	}
-	return all.String()
+	return err
 }
 
 func (self WordSet) Size() int64 {
@@ -138,9 +119,6 @@ func (self WordSet) Sample(n int64, nodeBias int64) WordSet {
 			n, self.Size())
 	}
 	totalWeight := self.Weight() + nodeBias*self.Size()
-	if totalWeight <= 0 {
-		log.Fatal("Cannot sample from a WordSet with nonpositive weight")
-	}
 
 	sample := NewWordSet()
 	for sample.Size() < n {
@@ -165,6 +143,27 @@ func (self WordSet) Sample(n int64, nodeBias int64) WordSet {
 		}
 	}
 	return sample
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// SERIALIZATION
+
+var byteOrder = binary.LittleEndian
+
+func (self WordSet) Serialize(out io.Writer) error {
+	return serialize(out, self.root)
+}
+
+func DeserializeWordSet(in io.Reader) (*WordSet, error) {
+	root, err := deserialize(in)
+	if err != nil {
+		return nil, err
+	}
+	words := &WordSet{root}
+	if err = words.Check(); err != nil {
+		return nil, err
+	}
+	return words, nil
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -220,51 +219,60 @@ func (self *WordSet) add(word WeightedWord, requireInsert bool) bool {
 	return true
 }
 
-// Returns the height of the subtree rooted at 'n'.
-func (self *WordSet) check(n *node) {
+// Checks tree invariants. Returns an error on failure.
+func (self *WordSet) check(n *node) error {
 	if n == nil {
-		return
+		return nil
+	}
+
+	if n.Word.Weight <= 0 {
+		return fmt.Errorf("Nonpositive weight: %d", n.Word.Weight)
 	}
 
 	if n.Left != nil {
 		if strings.Compare(n.Left.Word.Word, n.Word.Word) >= 0 {
-			log.Fatal("Not ordered")
+			return errors.New("Not ordered")
 		}
 	}
 	if n.Right != nil {
 		if strings.Compare(n.Word.Word, n.Right.Word.Word) >= 0 {
-			log.Fatal("Not ordered")
+			return errors.New("Not ordered")
 		}
 	}
 
 	expectedSubtreeHeight :=
 		max(subtreeHeight(n.Left), subtreeHeight(n.Right)) + 1
 	if n.SubtreeHeight != expectedSubtreeHeight {
-		log.Fatalf("Bad SubtreeHeight for %q: Expected %d, got %d",
+		return fmt.Errorf("Bad SubtreeHeight for %q: Expected %d, got %d",
 			n.Word.Word, expectedSubtreeHeight, n.SubtreeHeight)
 	}
 
 	expectedSubtreeSize :=
 		subtreeSize(n.Left) + subtreeSize(n.Right) + 1
 	if n.SubtreeSize != expectedSubtreeSize {
-		log.Fatalf("Bad SubtreeSize for %q: Expected %d, got %d",
+		return fmt.Errorf("Bad SubtreeSize for %q: Expected %d, got %d",
 			n.Word.Word, expectedSubtreeSize, n.SubtreeSize)
 	}
 
 	expectedSubtreeWeight :=
 		subtreeWeight(n.Left) + subtreeWeight(n.Right) + n.Word.Weight
 	if n.SubtreeWeight != expectedSubtreeWeight {
-		log.Fatalf("Bad SubtreeWeight for %q: Expected %d, got %d",
+		return fmt.Errorf("Bad SubtreeWeight for %q: Expected %d, got %d",
 			n.Word.Word, expectedSubtreeWeight, n.SubtreeWeight)
 	}
 
 	imb := imbalance(n)
 	if abs(imb) > 1 {
-		log.Fatalf("Too much imbalance (%d):\n%s", imb, self.DebugString())
+		return fmt.Errorf("Too much imbalance: %d", imb)
 	}
 
-	self.check(n.Left)
-	self.check(n.Right)
+	if err := self.check(n.Left); err != nil {
+		return err
+	}
+	if err := self.check(n.Right); err != nil {
+		return err
+	}
+	return nil
 }
 
 func updateSubtreeInfo(n *node) {
@@ -425,4 +433,78 @@ func (self SortWeightedWords) Swap(i, j int) {
 	temp := self[i]
 	self[i] = self[j]
 	self[j] = temp
+}
+
+// Serialization helpers.
+
+func serialize(out io.Writer, n *node) error {
+	if n == nil {
+		return binary.Write(out, byteOrder, int8(0))
+	}
+
+	if err := binary.Write(out, byteOrder, int8(1)); err != nil {
+		return err
+	}
+
+	if err := binary.Write(out, byteOrder, n.Word.Weight); err != nil {
+		return err
+	}
+	if err := binary.Write(out, byteOrder, int64(len(n.Word.Word))); err != nil {
+		return err
+	}
+	if _, err := out.Write([]byte(n.Word.Word)); err != nil {
+		return err
+	}
+
+	if err := serialize(out, n.Left); err != nil {
+		return err
+	}
+	if err := serialize(out, n.Right); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// TODO: test these
+func deserialize(in io.Reader) (*node, error) {
+	var tag int8
+	if err := binary.Read(in, byteOrder, &tag); err != nil {
+		return nil, err
+	}
+	if tag == 0 {
+		return nil, nil
+	}
+	if tag != 1 {
+		return nil, fmt.Errorf("Bad tag: %d", tag)
+	}
+
+	var weight int64
+	if err := binary.Read(in, byteOrder, &weight); err != nil {
+		return nil, err
+	}
+
+	var wordLen int64
+	if err := binary.Read(in, byteOrder, &wordLen); err != nil {
+		return nil, err
+	}
+
+	var word = make([]byte, wordLen)
+	if _, err := in.Read(word); err != nil {
+		return nil, err
+	}
+
+	left, err := deserialize(in)
+	if err != nil {
+		return nil, err
+	}
+
+	right, err := deserialize(in)
+	if err != nil {
+		return nil, err
+	}
+
+	n := &node{left, right, WeightedWord{string(word), weight}, 0, 0, 0}
+	updateSubtreeInfo(n)
+	return n, nil
 }
