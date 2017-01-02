@@ -466,7 +466,6 @@ func serialize(out io.Writer, n *node) error {
 	return nil
 }
 
-// TODO: test these
 func deserialize(in io.Reader) (*node, error) {
 	var tag int8
 	if err := binary.Read(in, byteOrder, &tag); err != nil {
