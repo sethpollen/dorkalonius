@@ -8,7 +8,7 @@ import . "github.com/sethpollen/dorkalonius"
 func TestGetWordList(t *testing.T) {
 	cocaWordList := GetCocaWordList()
 
-  // The expectation here is less than 5000 due to repeated words in the data
+	// The expectation here is less than 5000 due to repeated words in the data
 	// file.
 	if len(cocaWordList.Words) != 4351 {
 		t.Errorf("Expected 4351 words; got %v", len(cocaWordList.Words))

@@ -6,7 +6,7 @@ package dorkalonius
 import (
 	"encoding/csv"
 	"io"
-  "log"
+	"log"
 	"sort"
 	"strconv"
 	"strings"
