@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"math/rand"
 	"sort"
 	"strings"
 )
@@ -100,9 +101,81 @@ func (self WordSet) Weight() int64 {
 }
 
 func (self *WordSet) Add(word WeightedWord) {
+	self.add(word, false)
+}
+
+// Like Add, but requires that the word not already be present in the set.
+// Returns true iff the insertion happened.
+func (self *WordSet) Insert(word WeightedWord) bool {
+	return self.add(word, true)
+}
+
+func (self *WordSet) AddAll(other WordSet) {
+	visit(other.root, 0, func(n *node, depth int) {
+		self.Add(n.Word)
+	})
+}
+
+// Gets the contents of this WordSet, sorted by descending weight.
+func (self WordSet) GetWords() []WeightedWord {
+	words := make([]WeightedWord, self.Size())
+	i := 0
+	visit(self.root, 0, func(n *node, depth int) {
+		words[i] = n.Word
+		i++
+	})
+	sort.Sort(SortWeightedWords(words))
+	return words
+}
+
+// TODO: test
+// Randomly samples 'n' words from this WordSet (using their Weights) and returns
+// those words.
+func (self WordSet) Sample(n int64) WordSet {
+	if n > self.Size() {
+		log.Fatalf("Cannot sample %d words from a WordSet of size %d",
+			n, self.Size())
+	}
+	if self.Weight() <= 0 {
+		log.Fatal("Cannot sample from a WordSet with nonpositive weight")
+	}
+
+	sample := NewWordSet()
+	for sample.Size() < n {
+		point := rand.Int63n(self.Weight())
+		cur := self.root
+		for {
+			if point < subtreeWeight(cur.Left) {
+				cur = cur.Left
+				continue
+			}
+			point -= subtreeWeight(cur.Left)
+
+			if point < cur.Word.Weight {
+				sample.Insert(cur.Word)
+				break
+			}
+			point -= cur.Word.Weight
+
+			cur = cur.Right
+		}
+	}
+	return sample
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// HELPERS
+
+// If 'requireInsert' is true and the given word is already in this set, this
+// method does nothing and returns false. Otherwise returns true.
+func (self *WordSet) add(word WeightedWord, requireInsert bool) bool {
+	if word.Weight <= 0 {
+		log.Fatal("Weights must be positive")
+	}
+
 	if self.root == nil {
 		self.root = newLeafNode(word)
-		return
+		return true
 	}
 
 	path := []*node{self.root}
@@ -111,6 +184,9 @@ func (self *WordSet) Add(word WeightedWord) {
 
 		c := strings.Compare(word.Word, cur.Word.Word)
 		if c == 0 {
+			if requireInsert {
+				return false
+			}
 			cur.Word.Weight += word.Weight
 			// We didn't actually insert any nodes, but we break to the rebalance
 			// call anyway in order to update subtree counts.
@@ -137,28 +213,8 @@ func (self *WordSet) Add(word WeightedWord) {
 	}
 
 	self.rebalance(path)
+	return true
 }
-
-func (self *WordSet) AddAll(other WordSet) {
-	visit(other.root, 0, func(n *node, depth int) {
-		self.Add(n.Word)
-	})
-}
-
-// Gets the contents of this WordSet, sorted by descending weight.
-func (self WordSet) GetWords() []WeightedWord {
-	words := make([]WeightedWord, self.Size())
-	i := 0
-	visit(self.root, 0, func(n *node, depth int) {
-		words[i] = n.Word
-		i++
-	})
-	sort.Sort(SortWeightedWords(words))
-	return words
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// HELPERS
 
 // Returns the height of the subtree rooted at 'n'.
 func (self *WordSet) check(n *node) {
