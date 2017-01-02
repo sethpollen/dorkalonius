@@ -74,10 +74,10 @@ func main() {
 	}
 }
 
-func generateGame(sampler *dorkalonius.Index, out *os.File) error {
+func generateGame(wordSet dorkalonius.WordSet, out *os.File) error {
 	var err error
 
-	game, err := dorkalonius.NewGame(sampler)
+	game, err := dorkalonius.NewGame(wordSet)
 	if err != nil {
 		return err
 	}
@@ -99,7 +99,7 @@ func generateGame(sampler *dorkalonius.Index, out *os.File) error {
 }
 
 // Pretty-print words in columns to 'out'.
-func printWords(wordList *dorkalonius.WordList, out *os.File) error {
+func printWords(words []string, out *os.File) error {
 	screenWidth := *outputWidth
 	if screenWidth < 1 {
 		screenWidth = 1
@@ -108,9 +108,9 @@ func printWords(wordList *dorkalonius.WordList, out *os.File) error {
 	// We take a simple approach by using the same width for all columns. Find
 	// the longest word to determine that width.
 	var maxWordLength int = 0
-	for _, word := range wordList.Words {
-		if len(word.Word) > maxWordLength {
-			maxWordLength = len(word.Word)
+	for _, word := range words {
+		if len(word) > maxWordLength {
+			maxWordLength = len(word)
 		}
 	}
 	columnWidth := maxWordLength + 3
@@ -119,21 +119,21 @@ func printWords(wordList *dorkalonius.WordList, out *os.File) error {
 	if columns < 1 {
 		columns = 1
 	}
-	rows := (wordList.Len() + columns - 1) / columns
+	rows := (len(words) + columns - 1) / columns
 
 	// We print down each column, then across.
 	var err error
 	for row := 0; row < rows; row++ {
 		for col := 0; col < columns; col++ {
 			var index = row + (col * rows)
-			if index >= wordList.Len() {
+			if index >= len(words) {
 				continue
 			}
-			_, err = out.WriteString(wordList.Words[index].Word)
+			_, err = out.WriteString(words[index])
 			if err != nil {
 				return err
 			}
-			for i := 0; i < columnWidth-len(wordList.Words[index].Word); i++ {
+			for i := 0; i < columnWidth-len(words[index]); i++ {
 				_, err = out.WriteString(" ")
 				if err != nil {
 					return err

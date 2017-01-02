@@ -137,13 +137,14 @@ func (self WordSet) Sample(n int64, nodeBias int64) WordSet {
 		log.Fatalf("Cannot sample %d words from a WordSet of size %d",
 			n, self.Size())
 	}
-	if self.Weight() <= 0 {
+	totalWeight := self.Weight() + nodeBias*self.Size()
+	if totalWeight <= 0 {
 		log.Fatal("Cannot sample from a WordSet with nonpositive weight")
 	}
 
 	sample := NewWordSet()
 	for sample.Size() < n {
-		point := rand.Int63n(self.Weight())
+		point := rand.Int63n(totalWeight)
 		cur := self.root
 		for {
 			leftWeight := subtreeWeight(cur.Left) + nodeBias*subtreeSize(cur.Left)

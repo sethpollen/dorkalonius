@@ -124,6 +124,7 @@ func TestSample(t *testing.T) {
 			s = w.Sample(2, bias)
 			if s.Size() != 2 {
 				t.Error("Size: expected %d, got %d", 2, s.Size())
+        return
 			}
 			for _, word := range s.GetWords() {
 				counts[word.Word]++
@@ -131,12 +132,25 @@ func TestSample(t *testing.T) {
 		}
 
 		// Do some rough probability checks.
-		if counts["c"] < 5000 {
-			t.Error("\"c\" should have been picked roughly 50% of the time")
-		}
-		if counts["e"] < 2500 {
-			t.Error("\"e\" should have been picked roughly 25% of the time")
-		}
+		expectedCountC := 10000
+		expectedCountE := 5000
+		if bias > 0 {
+      expectedCountC = 20000 / 6
+      expectedCountE = 20000 / 6
+    }
+		
+    if counts["c"] < expectedCountC / 2 {
+      t.Error("Count for \"c\" too small")
+    }
+    if counts["c"] > expectedCountC * 2 {
+      t.Error("Count for \"c\" too large")
+    }
+    if counts["e"] < expectedCountE / 2 {
+      t.Error("Count for \"e\" too small")
+    }
+    if counts["e"] > expectedCountE * 2 {
+      t.Error("Count for \"e\" too large")
+    }
 	}
 }
 
