@@ -177,6 +177,7 @@ func (self *WordSet) rebalance(path []*node) {
   fmt.Printf("\n") // TODO:
   fmt.Printf("%s", self.DebugString()) // TODO:
   fmt.Printf("\n") // TODO:
+
   for ; len(path) > 0; path = path[0:len(path)-1] {
     n := path[len(path)-1]
     
@@ -229,6 +230,10 @@ func (self *WordSet) rebalance(path []*node) {
     updateSubtreeInfo(n)
     updateSubtreeInfo(child)
   }
+
+  fmt.Printf("\n") // TODO:
+  fmt.Printf("%s", self.DebugString()) // TODO:
+  fmt.Printf("\n") // TODO:
 }
 
 func visit(n *node, depth int, visitor func(n *node, depth int)) {
