@@ -1,5 +1,5 @@
 // Defines a container for words which tracks word weights and allows random
-// sampling. Words are stored in a sorted red/black tree, with each internal
+// sampling. Words are stored in a sorted AVL tree, with each internal
 // node storing the number and total weight of its descendant leaves.
 
 package dorkalonius
@@ -15,11 +15,8 @@ type WeightedWord struct {
 }
 
 type node struct {
-  // Red or black?
-  Black  bool
-    
   // Parent/child pointers.
-  Parent *node
+  Parent *node // TODO: can we drop this?
   Left   *node
   Right  *node
     
@@ -34,7 +31,7 @@ type node struct {
 
 func newLeafNode(parent *node, word WeightedWord) *node {
   // Newly inserted nodes start out as red.
-  return &node{false, parent, nil, nil, word, 1, word.Weight}
+  return &node{parent, nil, nil, word, 1, word.Weight}
 }
 
 type WordSet struct {
@@ -53,9 +50,6 @@ func NewWordSet() WordSet {
 func (self WordSet) Check() {
   if self.root == nil {
     return
-  }
-  if red(self.root) {
-    log.Fatal("Root is red")
   }
   check(self.root)
 }
@@ -106,23 +100,16 @@ func (self WordSet) Add(word WeightedWord) {
 
   updateSubtreeCounts(newNode)
   
-  // We must now rebalance after the insertion of 'newNode'. This logic is
-  // based on code from https://en.wikipedia.org/wiki/Red%E2%80%93black_tree.
-  insertCase1(newNode)
+  // We must now rebalance after the insertion of 'newNode'. TODO:
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // HELPERS
 
-// Returns the black depth of the subtree rooted at this node.
+// Returns the height of the subtree rooted at 'n'.
 func check(n *node) int {
   if n == nil {
-    // Nil nodes are considered black and so have a black depth of 1.
-    return 1
-  }
-  
-  if red(n) && (red(n.Left) || red(n.Right)) {
-    log.Fatal("Red node has a red child")
+    return 0
   }
   
   if n.Left != nil {
@@ -144,17 +131,17 @@ func check(n *node) int {
     log.Fatal("Bad SubtreeWeight")
   }
   
-  leftBlackDepth := check(n.Left)
-  rightBlackDepth := check(n.Right)
-  if leftBlackDepth != rightBlackDepth {
-    log.Fatal("Unequal black depths")
+  leftHeight := check(n.Left)
+  rightHeight := check(n.Right)
+  imbalance := leftHeight - rightHeight
+  if imbalance < -1 || imbalance > 1 {
+    log.Fatal("Too much imbalance")
   }
   
-  blackDepth := leftBlackDepth
-  if black(n) {
-    blackDepth++
+  if leftHeight > rightHeight {
+    return leftHeight + 1
   }
-  return blackDepth
+  return rightHeight + 1
 }
 
 // Updates subtree counts at 'n' and all of its ancestors.
@@ -165,17 +152,6 @@ func updateSubtreeCounts(n *node) {
                       n.Word.Weight
     n = n.Parent
   }
-}
-
-func black(n *node) bool {
-  if n == nil {
-    return true
-  }
-  return n.Black
-}
-
-func red(n *node) bool {
-  return !black(n)
 }
 
 func subtreeNodes(n *node) int64 {
@@ -190,22 +166,4 @@ func subtreeWeight(n *node) int64 {
     return 0
   }
   return n.SubtreeWeight
-}
-
-func grandparent(n *node) *node {
-  if n != nil && n.Parent != nil {
-    return n.Parent.Parent;
-  }
-  return nil;
-}
-
-func uncle(n *node) *node {
-  g := grandparent(n)
-  if g == nil {
-    return nil
-  }
-  if n.Parent == g.Left {
-    return g.Right;
-  }
-  return g.Left;
 }
