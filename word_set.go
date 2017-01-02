@@ -8,7 +8,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-  "sort"
+	"sort"
 	"strings"
 )
 
@@ -139,24 +139,22 @@ func (self *WordSet) Add(word WeightedWord) {
 	self.rebalance(path)
 }
 
-// TODO: test
 func (self *WordSet) AddAll(other WordSet) {
-  visit(other.root, 0, func(n *node, depth int) {
-    self.Add(n.Word)
-  })
+	visit(other.root, 0, func(n *node, depth int) {
+		self.Add(n.Word)
+	})
 }
 
-// TODO: test
 // Gets the contents of this WordSet, sorted by descending weight.
 func (self WordSet) GetWords() []WeightedWord {
-  words := make([]WeightedWord, self.Size())
-  i := 0
-  visit(self.root, 0, func(n *node, depth int) {
-    words[i] = n.Word
-    i++
-  })
-  sort.Sort(SortWeightedWords(words))
-  return words
+	words := make([]WeightedWord, self.Size())
+	i := 0
+	visit(self.root, 0, func(n *node, depth int) {
+		words[i] = n.Word
+		i++
+	})
+	sort.Sort(SortWeightedWords(words))
+	return words
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -353,18 +351,18 @@ func abs(x int) int {
 type SortWeightedWords []WeightedWord
 
 func (self SortWeightedWords) Len() int {
-  return len(self)
+	return len(self)
 }
 
 func (self SortWeightedWords) Less(i, j int) bool {
-  if self[i].Weight != self[j].Weight {
-    return self[i].Weight > self[j].Weight
-  }
-  return strings.Compare(self[i].Word, self[j].Word) < 0
+	if self[i].Weight != self[j].Weight {
+		return self[i].Weight > self[j].Weight
+	}
+	return strings.Compare(self[i].Word, self[j].Word) < 0
 }
 
 func (self SortWeightedWords) Swap(i, j int) {
-  temp := self[i]
-  self[i] = self[j]
-  self[j] = temp
+	temp := self[i]
+	self[i] = self[j]
+	self[j] = temp
 }
