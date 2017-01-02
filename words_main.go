@@ -76,11 +76,7 @@ func main() {
 
 func generateGame(wordSet dorkalonius.WordSet, out *os.File) error {
 	var err error
-
-	game, err := dorkalonius.NewGame(wordSet)
-	if err != nil {
-		return err
-	}
+	game := dorkalonius.NewGame(wordSet)
 
 	_, err = out.WriteString(fmt.Sprintf("TARGET WORD: %s\n\n",
 		game.TargetWord))

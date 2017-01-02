@@ -46,6 +46,14 @@ go_test(
 )
 
 go_binary(
+    name = "game_test_main",
+    srcs = ["game_test_main.go"],
+    deps = [
+        ":go_default_library",
+    ],
+)
+
+go_binary(
     name = "words_main",
     srcs = ["words_main.go"],
     deps = [
