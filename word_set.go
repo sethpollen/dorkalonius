@@ -86,6 +86,10 @@ func (self WordSet) Weight() int64 {
 
 func (self *WordSet) Add(word WeightedWord) {
 	self.add(word, false)
+  // TODO:
+  if err := self.Check(); err != nil {
+    log.Fatal(err)
+  }
 }
 
 // Like Add, but requires that the word not already be present in the set.
@@ -272,7 +276,8 @@ func (self *WordSet) check(n *node) error {
 
 	imb := imbalance(n)
 	if abs(imb) > 1 {
-		return fmt.Errorf("Too much imbalance: %d", imb)
+		return fmt.Errorf("Too much imbalance (%d) for %q\n%s",
+                      imb, n.Word.Word, self.PrettyPrint())
 	}
 
 	if err := self.check(n.Left); err != nil {
@@ -300,7 +305,8 @@ func (self *WordSet) rebalance(path []*node) {
 
 		imb := imbalance(n)
 		if abs(imb) > 2 {
-			log.Fatalf("Imbalance too large: %d\n%s", abs(i), self.PrettyPrint())
+			log.Fatalf("Imbalance (%d) too large for %q\n%s",
+                 abs(i), n.Word.Word, self.PrettyPrint())
 		}
 
 		if imb == 0 {
@@ -425,20 +431,21 @@ func abs(x int) int {
 
 func prettyPrint(n *node, indent string, dest io.Writer) error {
   if n == nil {
-    header := fmt.Sprintf("%s+--\n", indent)
+    header := fmt.Sprintf("%s()\n", indent)
     if _, err := dest.Write([]byte(header)); err != nil {
       return err
     }
     return nil
   }
   
-  header := fmt.Sprintf("%s+-- %s\n", indent, n.Word.Word)
+  header := fmt.Sprintf("%s%s\n", indent, n.Word.Word)
   if _, err := dest.Write([]byte(header)); err != nil {
     return err
   }
   
-  prettyPrint(n.Left, indent + "| ", dest)
-  prettyPrint(n.Right, indent + "  ", dest)
+  indent += "  "
+  prettyPrint(n.Left, indent, dest)
+  prettyPrint(n.Right, indent, dest)
   return nil
 }
 

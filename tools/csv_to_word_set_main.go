@@ -10,7 +10,6 @@ import (
 	"log"
 	"os"
 	"strconv"
-  "strings"
 )
 
 // Input files are passed as plain command-line arguments.
@@ -72,7 +71,8 @@ func readFile(filename string) dorkalonius.WordSet {
       continue
     }
 
-    word := strings.ToLower(record[*csvWordColumn])
+    word := record[*csvWordColumn]
+    // TODO: word = strings.ToLower(word)
     weight, err := strconv.ParseInt(record[*csvWeightColumn], 10, 64)
     if err != nil {
       log.Fatal(err)
