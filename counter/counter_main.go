@@ -28,14 +28,14 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	
+
 	tasks := make([]func() dorkalonius.WordSet, flag.NArg())
-  for i := range tasks {
-    filename := flag.Arg(i)
-    tasks[i] = func() dorkalonius.WordSet {
-      return readFile(inflectionMap, filename)
-    }
-  }
+	for i := range tasks {
+		filename := flag.Arg(i)
+		tasks[i] = func() dorkalonius.WordSet {
+			return readFile(inflectionMap, filename)
+		}
+	}
 	wordSet := dorkalonius.BuildWordSet(tasks)
 
 	csvWriter := csv.NewWriter(os.Stdout)

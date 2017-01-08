@@ -186,6 +186,32 @@ func TestSample(t *testing.T) {
 	}
 }
 
+func TestPrettyPrint(t *testing.T) {
+	w := NewWordSet()
+	for _, word := range strings.Split(
+		"the quick brown fox", " ") {
+		w.Add(WeightedWord{word, 1})
+	}
+
+	actual := strings.TrimSpace(w.PrettyPrint())
+	expected := strings.TrimSpace(`
++-> quick
+  +-> fox
+  | +-> brown
+  | | +-> ()
+  | | +-> ()
+  | +-> ()
+  +-> the
+    +-> ()
+    +-> ()`)
+
+	if actual != expected {
+		t.Errorf("Actual:\n%s\nExpected:\n%s", actual, expected)
+	}
+}
+
+// Helpers.
+
 func wordSetsEqual(a, b WordSet) bool {
 	aWords := a.GetWords()
 	bWords := b.GetWords()

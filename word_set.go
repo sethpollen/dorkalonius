@@ -150,11 +150,10 @@ func (self WordSet) Sample(n int64, nodeBias int64) WordSet {
 	return sample
 }
 
-// TODO: test
 // TODO: check that we are doing ToLower in the right places
 func (self WordSet) PrettyPrint() string {
   var buf bytes.Buffer
-  prettyPrint(self.root, "", &buf)
+  prettyPrint(self.root, append(make([]byte, 0, 64), []byte("  ")...), &buf)
   return buf.String()
 }
 
@@ -429,23 +428,33 @@ func abs(x int) int {
 	return x
 }
 
-func prettyPrint(n *node, indent string, dest io.Writer) error {
+func prettyPrint(n *node, indent []byte, dest io.Writer) error {
   if n == nil {
-    header := fmt.Sprintf("%s()\n", indent)
-    if _, err := dest.Write([]byte(header)); err != nil {
+    if _, err := dest.Write([]byte("+-> ()\n")); err != nil {
       return err
     }
     return nil
   }
-  
-  header := fmt.Sprintf("%s%s\n", indent, n.Word.Word)
+
+  header := fmt.Sprintf("+-> %s\n%s", n.Word.Word, indent)
   if _, err := dest.Write([]byte(header)); err != nil {
     return err
   }
   
-  indent += "  "
-  prettyPrint(n.Left, indent, dest)
-  prettyPrint(n.Right, indent, dest)
+  leftIndent := append(indent, []byte("| ")...)
+  if err := prettyPrint(n.Left, leftIndent, dest); err != nil {
+    return err
+  }
+
+  if _, err := dest.Write(indent); err != nil {
+    return err
+  }
+  
+  rightIndent := append(indent, []byte("  ")...)
+  if err := prettyPrint(n.Right, rightIndent, dest); err != nil {
+    return err
+  }
+
   return nil
 }
 

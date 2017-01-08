@@ -27,19 +27,19 @@ var csvWeightColumn = flag.Int("csv_weight_column", 1,
 func main() {
 	flag.Parse()
 
-  tasks := make([]func() dorkalonius.WordSet, flag.NArg())
-  for i := range tasks {
-    filename := flag.Arg(i)
-    tasks[i] = func() dorkalonius.WordSet {
-      return readFile(filename)
-    }
-  }
+	tasks := make([]func() dorkalonius.WordSet, flag.NArg())
+	for i := range tasks {
+		filename := flag.Arg(i)
+		tasks[i] = func() dorkalonius.WordSet {
+			return readFile(filename)
+		}
+	}
 	wordSet := dorkalonius.BuildWordSet(tasks)
 
-  out, err := os.Create(*outputFile)
-  if err != nil {
-    log.Fatal(err)
-  }
+	out, err := os.Create(*outputFile)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	err = wordSet.Serialize(out)
 	if err != nil {
@@ -48,38 +48,38 @@ func main() {
 }
 
 func readFile(filename string) dorkalonius.WordSet {
-  in, err := os.Open(filename)
-  if err != nil {
-    log.Fatal(err)
-  }
-  
-  csvIn := csv.NewReader(in)
-  // Disable field count checking.
-  csvIn.FieldsPerRecord = -1
+	in, err := os.Open(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-  wordSet := dorkalonius.NewWordSet()
+	csvIn := csv.NewReader(in)
+	// Disable field count checking.
+	csvIn.FieldsPerRecord = -1
 
-  for i := 0; true; i++ {
-    record, err := csvIn.Read()
-    if err == io.EOF {
-      break
-    }
-    if err != nil {
-      log.Fatalln(err)
-    }
-    if i < *csvHeaderLines {
-      continue
-    }
+	wordSet := dorkalonius.NewWordSet()
 
-    word := record[*csvWordColumn]
-    // TODO: word = strings.ToLower(word)
-    weight, err := strconv.ParseInt(record[*csvWeightColumn], 10, 64)
-    if err != nil {
-      log.Fatal(err)
-    }
+	for i := 0; true; i++ {
+		record, err := csvIn.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatalln(err)
+		}
+		if i < *csvHeaderLines {
+			continue
+		}
 
-    wordSet.Add(dorkalonius.WeightedWord{word, weight})
-  }
-  
-  return wordSet
+		word := record[*csvWordColumn]
+		// TODO: word = strings.ToLower(word)
+		weight, err := strconv.ParseInt(record[*csvWeightColumn], 10, 64)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		wordSet.Add(dorkalonius.WeightedWord{word, weight})
+	}
+
+	return wordSet
 }
