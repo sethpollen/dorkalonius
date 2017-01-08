@@ -198,12 +198,7 @@ func TestPrettyPrint(t *testing.T) {
 +-> quick
   +-> fox
   | +-> brown
-  | | +-> ()
-  | | +-> ()
-  | +-> ()
-  +-> the
-    +-> ()
-    +-> ()`)
+  +-> the`)
 
 	if actual != expected {
 		t.Errorf("Actual:\n%s\nExpected:\n%s", actual, expected)
