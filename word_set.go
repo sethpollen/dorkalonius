@@ -441,6 +441,10 @@ func prettyPrint(n *node, indent []byte, dest io.Writer) error {
     return err
   }
   
+  if n.Left == nil && n.Right == nil {
+    return nil
+  }
+  
   leftIndent := append(indent, []byte("| ")...)
   if err := prettyPrint(n.Left, leftIndent, dest); err != nil {
     return err
