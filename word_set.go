@@ -152,10 +152,7 @@ func (self WordSet) Sample(n int64, nodeBias int64) WordSet {
 
 // TODO: check that we are doing ToLower in the right places
 func (self WordSet) PrettyPrint() string {
-  var buf bytes.Buffer
-  indent := make([]byte, 0, 64)
-  prettyPrint(self.root, append(indent, []byte("  ")...), &buf)
-  return buf.String()
+  return prettyPrint(self.root)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -277,7 +274,7 @@ func (self *WordSet) check(n *node) error {
 	imb := imbalance(n)
 	if abs(imb) > 1 {
 		return fmt.Errorf("Too much imbalance (%d) for %q\n%s",
-                      imb, n.Word.Word, self.PrettyPrint())
+                      imb, n.Word.Word, prettyPrint(n))
 	}
 
 	if err := self.check(n.Left); err != nil {
@@ -429,18 +426,19 @@ func abs(x int) int {
 	return x
 }
 
-func prettyPrint(n *node, indent []byte, dest io.Writer) error {
-  if n == nil {
-    if _, err := dest.Write([]byte("+-> ()\n")); err != nil {
-      return err
-    }
-    return nil
-  }
+func prettyPrint(n *node) string {
+  var buf bytes.Buffer
+  indent := make([]byte, 0, 64)
+  prettyPrintNode(n, append(indent, []byte("  ")...), &buf)
+  return buf.String()
+}
 
-  header := fmt.Sprintf("+-> %s\n", n.Word.Word)
-  if _, err := dest.Write([]byte(header)); err != nil {
-    return err
+func prettyPrintNode(n *node, indent []byte, dest *bytes.Buffer) {
+  if n == nil {
+    dest.WriteString("+-> ()\n")
+    return
   }
+  dest.WriteString(fmt.Sprintf("+-> %s\n", n.Word.Word))
   
   children := make([]*node, 0, 2)
   if n.Left != nil {
@@ -451,9 +449,7 @@ func prettyPrint(n *node, indent []byte, dest io.Writer) error {
   }
   
   for i, child := range children {
-    if _, err := dest.Write(indent); err != nil {
-      return err
-    }
+    dest.Write(indent)
     
     var childIndent []byte
     if i < len(children) - 1 {
@@ -461,12 +457,8 @@ func prettyPrint(n *node, indent []byte, dest io.Writer) error {
     } else {
       childIndent = append(indent, []byte("  ")...)
     }
-    if err := prettyPrint(child, childIndent, dest); err != nil {
-      return err
-    }
+    prettyPrintNode(child, childIndent, dest)
   }
-
-  return nil
 }
 
 // Support sorting of WeightedWords.
