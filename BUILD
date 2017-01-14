@@ -10,17 +10,6 @@ go_prefix("github.com/sethpollen/dorkalonius")
 
 load("//tools:tools.bzl", "go_embed_data", "word_set")
 
-go_library(
-    name = "go_default_library",
-    srcs = [
-        "memoize.go",
-        "sleep.go",
-        "word_set.go",
-        "word_set_builder.go",
-    ],
-    visibility = ["//visibility:public"],
-)
-
 word_set(
     name = "coca_word_set",
     srcs = ["coca-5000.csv"],
@@ -42,30 +31,14 @@ word_set(
 )
 
 go_library(
-    name = "game",
+    name = "go_default_library",
     srcs = [
+        "game.go",
         ":coca_adjective_set",
         ":coca_word_set",
-        "game.go",
     ],
     deps = [
-        ":go_default_library",
-    ],
-)
-
-go_test(
-    name = "memoize_test",
-    srcs = ["memoize_test.go"],
-    deps = [
-        ":go_default_library",
-    ],
-)
-
-go_test(
-    name = "word_set_test",
-    srcs = ["word_set_test.go"],
-    deps = [
-        ":go_default_library",
+        "//util:go_default_library",
     ],
 )
 
@@ -73,8 +46,8 @@ go_binary(
     name = "game_test_main",
     srcs = ["game_test_main.go"],
     deps = [
+        "//util:go_default_library",
         ":go_default_library",
-        ":game",
     ],
 )
 
@@ -82,7 +55,7 @@ go_binary(
     name = "words_main",
     srcs = ["words_main.go"],
     deps = [
+        "//util:go_default_library",
         ":go_default_library",
-        ":game",
     ],
 )

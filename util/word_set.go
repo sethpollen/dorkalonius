@@ -2,7 +2,7 @@
 // sampling. Words are stored in a sorted AVL tree, with each internal
 // node storing the number and total weight of its descendant leaves.
 
-package dorkalonius
+package util
 
 import (
   "bytes"

@@ -5,7 +5,7 @@ package main
 import (
 	"encoding/csv"
 	"flag"
-	"github.com/sethpollen/dorkalonius"
+	"github.com/sethpollen/dorkalonius/util"
 	"io"
 	"log"
 	"os"
@@ -33,14 +33,14 @@ var csvFilterValue = flag.String("csv_filter_value", "",
 func main() {
 	flag.Parse()
 
-	tasks := make([]func() dorkalonius.WordSet, flag.NArg())
+	tasks := make([]func() util.WordSet, flag.NArg())
 	for i := range tasks {
 		filename := flag.Arg(i)
-		tasks[i] = func() dorkalonius.WordSet {
+		tasks[i] = func() util.WordSet {
 			return readFile(filename)
 		}
 	}
-	wordSet := dorkalonius.BuildWordSet(tasks)
+	wordSet := util.BuildWordSet(tasks)
 
 	out, err := os.Create(*outputFile)
 	if err != nil {
@@ -53,7 +53,7 @@ func main() {
 	}
 }
 
-func readFile(filename string) dorkalonius.WordSet {
+func readFile(filename string) util.WordSet {
 	in, err := os.Open(filename)
 	if err != nil {
 		log.Fatal(err)
@@ -63,7 +63,7 @@ func readFile(filename string) dorkalonius.WordSet {
 	// Disable field count checking.
 	csvIn.FieldsPerRecord = -1
 
-	wordSet := dorkalonius.NewWordSet()
+	wordSet := util.NewWordSet()
 
 	for i := 0; true; i++ {
 		record, err := csvIn.Read()
@@ -90,7 +90,7 @@ func readFile(filename string) dorkalonius.WordSet {
 			log.Fatal(err)
 		}
 
-		wordSet.Add(dorkalonius.WeightedWord{word, weight})
+		wordSet.Add(util.WeightedWord{word, weight})
 	}
 
 	return wordSet

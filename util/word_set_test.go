@@ -1,4 +1,4 @@
-package dorkalonius_test
+package util_test
 
 import (
 	"bytes"
@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 )
-import . "github.com/sethpollen/dorkalonius"
+import . "github.com/sethpollen/dorkalonius/util"
 
 func TestBasic(t *testing.T) {
 	w := NewWordSet()

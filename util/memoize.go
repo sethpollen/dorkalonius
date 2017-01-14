@@ -1,6 +1,6 @@
 // Utilities for memoizing expensive operations (like loading corpus data).
 
-package dorkalonius
+package util
 
 // Memoizes a single result. This struct consists solely of a channel used
 // to communicate requests to a worker goroutine.

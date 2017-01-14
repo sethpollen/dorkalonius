@@ -2,6 +2,8 @@
 
 package dorkalonius
 
+import "github.com/sethpollen/dorkalonius/util"
+
 type Game struct {
 	TargetWord     string
 	AvailableWords []string
@@ -25,7 +27,7 @@ func NewTargetWord() string {
 	return adjective.GetWords()[0].Word
 }
 
-func NewGame(wordSet WordSet) *Game {
+func NewGame(wordSet *util.WordSet) *Game {
 	words := wordSet.Sample(numAvailableWords,
 		int64(availableWordBias*float64(wordSet.Size())))
 	wordsSlice := words.GetWords()

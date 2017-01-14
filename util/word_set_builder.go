@@ -1,4 +1,4 @@
-package dorkalonius
+package util
 
 // Runs all of the 'tasks' in parallel and returns a WordSet containing their
 // combined outputs.

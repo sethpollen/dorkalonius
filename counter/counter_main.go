@@ -7,9 +7,9 @@ import (
 	"encoding/csv"
 	"flag"
 	"fmt"
-	"github.com/sethpollen/dorkalonius"
 	"github.com/sethpollen/dorkalonius/counter"
 	"github.com/sethpollen/dorkalonius/gutenberg"
+  "github.com/sethpollen/dorkalonius/util"
 	"github.com/sethpollen/dorkalonius/wiktionary"
 	"io"
 	"log"
@@ -29,14 +29,14 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	tasks := make([]func() dorkalonius.WordSet, flag.NArg())
+	tasks := make([]func() util.WordSet, flag.NArg())
 	for i := range tasks {
 		filename := flag.Arg(i)
-		tasks[i] = func() dorkalonius.WordSet {
+		tasks[i] = func() util.WordSet {
 			return readFile(inflectionMap, filename)
 		}
 	}
-	wordSet := dorkalonius.BuildWordSet(tasks)
+	wordSet := util.BuildWordSet(tasks)
 
 	csvWriter := csv.NewWriter(os.Stdout)
 	for _, word := range wordSet.GetWords() {
@@ -47,7 +47,7 @@ func main() {
 
 func readFile(
 	inflectionMap *wiktionary.InflectionMap,
-	filename string) dorkalonius.WordSet {
+	filename string) util.WordSet {
 
 	var input io.Reader
 	var err error
@@ -60,13 +60,13 @@ func readFile(
 		input = gutenberg.NewEbookReader(input)
 	}
 
-	wordSet := dorkalonius.NewWordSet()
+	wordSet := util.NewWordSet()
 	err = counter.ProcessWords(input, func(word string) error {
 		word = inflectionMap.GetBaseWord(word)
 		if len(word) == 0 {
 			log.Fatalln("Empty word")
 		}
-		wordSet.Add(dorkalonius.WeightedWord{word, 1})
+		wordSet.Add(util.WeightedWord{word, 1})
 		return nil
 	})
 	if err != nil {

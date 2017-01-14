@@ -19,7 +19,7 @@ go_binary(
     data = ["//wiktionary:inflections_xml_bz2"],
     deps = [
         ":go_default_library",
-        "//:go_default_library",
+        "//util:go_default_library",
         "//gutenberg:go_default_library",
         "//wiktionary:go_default_library",
     ],

@@ -3,7 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/sethpollen/dorkalonius"
+  "github.com/sethpollen/dorkalonius"
+  "github.com/sethpollen/dorkalonius/util"
 	"log"
 	"math/rand"
 	"os"
@@ -36,7 +37,7 @@ func main() {
 	}
 	var err error
 
-	words := dorkalonius.GetCocaWords()
+	words := dorkalonius.Get_coca_word_set()
 
 	if *outputDir == "" {
 		fmt.Println()
@@ -47,7 +48,7 @@ func main() {
 		fmt.Println()
 
 		if *duration > 0 {
-			dorkalonius.VerboseSleep(*duration, true)
+			util.VerboseSleep(*duration, true)
 			fmt.Println("TIME'S UP")
 			fmt.Println()
 		}
@@ -74,7 +75,7 @@ func main() {
 	}
 }
 
-func generateGame(wordSet dorkalonius.WordSet, out *os.File) error {
+func generateGame(wordSet *util.WordSet, out *os.File) error {
 	var err error
 	game := dorkalonius.NewGame(wordSet)
 

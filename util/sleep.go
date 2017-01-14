@@ -1,4 +1,4 @@
-package dorkalonius
+package util
 
 import (
 	"fmt"

@@ -37,5 +37,5 @@ go_binary(
     name = "csv_to_word_set_main",
     srcs = ["csv_to_word_set_main.go"],
     visibility = ["//visibility:public"],
-    deps = ["//:go_default_library"]
+    deps = ["//util:go_default_library"]
 )
