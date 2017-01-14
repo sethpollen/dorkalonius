@@ -125,9 +125,7 @@ func (self *InflectionMap) GetBaseWord(inflected string) string {
 }
 
 func loadPreferences() (map[string]string, error) {
-	csvReader := csv.NewReader(
-		Get_preference_data(
-			"inflection_to_base_preferences.csv"))
+	csvReader := csv.NewReader(Get_preference_data())
 	result := make(map[string]string)
 	for {
 		record, err := csvReader.Read()

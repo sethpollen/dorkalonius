@@ -19,7 +19,7 @@ const (
 )
 
 func NewTargetWord() string {
-	adjectives := GetCocaAdjectives()
+	adjectives := Get_coca_adjective_set()
 	adjective := adjectives.Sample(
 		1, int64(targetWordBias*float64(adjectives.Size())))
 	return adjective.GetWords()[0].Word

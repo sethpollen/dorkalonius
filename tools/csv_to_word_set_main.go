@@ -23,7 +23,12 @@ var csvHeaderLines = flag.Int("csv_header_lines", 0,
 var csvWordColumn = flag.Int("csv_word_column", 0,
 	"Column in the CSV file which contains the word")
 var csvWeightColumn = flag.Int("csv_weight_column", 1,
-	"Column in the CSV file which contains the weight (occurrences)")
+  "Column in the CSV file which contains the weight (occurrences)")
+var csvFilterColumn = flag.Int("csv_filter_column", -1,
+  "Column in the CSV file which contains cell to filter on. Leave "+
+  "absent to specify no filtering")
+var csvFilterValue = flag.String("csv_filter_value", "",
+  "We only keep rows where the csv_filter_column has this value")
 
 func main() {
 	flag.Parse()
@@ -71,6 +76,12 @@ func readFile(filename string) dorkalonius.WordSet {
 		if i < *csvHeaderLines {
 			continue
 		}
+		
+		if *csvFilterColumn >= 0 {
+      if record[*csvFilterColumn] != *csvFilterValue {
+        continue
+      }
+    }
 
 		word := record[*csvWordColumn]
 		word = strings.ToLower(word)

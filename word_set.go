@@ -17,8 +17,8 @@ import (
 )
 
 type WeightedWord struct {
-	Word   string
-	Weight int64
+	Word      string
+	Weight    int64
 }
 
 type node struct {
@@ -539,9 +539,9 @@ func serialize(out io.Writer, n *node) error {
 		return err
 	}
 
-	if err := binary.Write(out, byteOrder, n.Word.Weight); err != nil {
-		return err
-	}
+  if err := binary.Write(out, byteOrder, n.Word.Weight); err != nil {
+    return err
+  }
 	if err := binary.Write(out, byteOrder, int64(len(n.Word.Word))); err != nil {
 		return err
 	}
@@ -575,7 +575,7 @@ func deserialize(in io.Reader) (*node, error) {
 	if err := binary.Read(in, byteOrder, &weight); err != nil {
 		return nil, err
 	}
-
+	
 	var wordLen int64
 	if err := binary.Read(in, byteOrder, &wordLen); err != nil {
 		return nil, err
