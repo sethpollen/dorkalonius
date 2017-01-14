@@ -46,8 +46,8 @@ func main() {
 	emitTestCase(out, make([]byte, 0))
 	emitTestCase(out, []byte("ABC"))
 
-	data := make([]byte, 256)
-	for i := 0; i < 256; i++ {
+	data := make([]byte, 10000)
+	for i := 0; i < len(data); i++ {
 		data[i] = byte(i)
 	}
 	emitTestCase(out, data)

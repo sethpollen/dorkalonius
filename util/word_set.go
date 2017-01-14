@@ -160,7 +160,7 @@ func (self WordSet) Serialize(out io.Writer) error {
 func DeserializeWordSet(in io.Reader) (*WordSet, error) {
 	root, err := deserialize(in)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v. Read so far:\n%s", err, prettyPrint(root))
 	}
 	words := &WordSet{root}
 	if err = words.Check(); err != nil {
@@ -476,10 +476,10 @@ func prettyPrint(n *node) string {
 
 func prettyPrintNode(n *node, typ string, indent []byte, dest *bytes.Buffer) {
   if n == nil {
-    dest.WriteString(fmt.Sprintf("+-%s ()\n", typ))
+    dest.WriteString(fmt.Sprintf("+-%s <>\n", typ))
     return
   }
-  dest.WriteString(fmt.Sprintf("+-%s %s\n", typ, n.Word.Word))
+  dest.WriteString(fmt.Sprintf("+-%s %s (%d)\n", typ, n.Word.Word, n.Word.Weight))
   
   children := make([]*node, 0, 2)
   if n.Left != nil {
@@ -586,17 +586,15 @@ func deserialize(in io.Reader) (*node, error) {
 		return nil, err
 	}
 
-	left, err := deserialize(in)
-	if err != nil {
-		return nil, err
-	}
+	// Even if one of the children fails to parse, we still return this node.
+	n := &node{nil, nil, WeightedWord{string(word), weight}, 0, 0, 0}
 
-	right, err := deserialize(in)
-	if err != nil {
-		return nil, err
+	var err error = nil
+	n.Left, err = deserialize(in)
+	if err == nil {
+	  n.Right, err = deserialize(in)
 	}
-
-	n := &node{left, right, WeightedWord{string(word), weight}, 0, 0, 0}
+  
 	updateSubtreeInfo(n)
-	return n, nil
+	return n, err
 }

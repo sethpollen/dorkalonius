@@ -13,6 +13,8 @@ import (
 	"time"
 )
 
+// TODO: this binary currently crashes
+
 var sample_size = flag.Int("sample_size", 35,
 	"Number of words to sample.")
 var outputWidth = flag.Int("output_width", -1,

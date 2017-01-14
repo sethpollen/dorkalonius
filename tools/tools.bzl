@@ -69,7 +69,7 @@ def word_set(
     'in := Get_%s__embed()' % name,
     'wordSet, err := util.DeserializeWordSet(in)',
     'if err != nil {',
-    'log.Fatal(err)',
+    'log.Fatal("Failed to load %s: ", err)' % name,
     '}',
     'return wordSet',
     '})',
