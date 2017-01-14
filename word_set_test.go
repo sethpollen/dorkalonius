@@ -2,6 +2,7 @@ package dorkalonius_test
 
 import (
 	"bytes"
+  "math/rand"
 	"strings"
 	"testing"
 )
@@ -195,17 +196,40 @@ func TestPrettyPrint(t *testing.T) {
 
 	actual := strings.TrimSpace(w.PrettyPrint())
 	expected := strings.TrimSpace(`
-+-> quick
-  +-> fox
-  | +-> brown
-  +-> the`)
++-- quick
+  +-L brown
+  | +-R fox
+  +-R the`)
 
 	if actual != expected {
 		t.Errorf("Actual:\n%s\nExpected:\n%s", actual, expected)
 	}
 }
 
+func TestFuzz(t *testing.T) {
+  rand.Seed(7834763)
+  w := NewWordSet()
+  for i := 0; i < 10000; i++ {
+    w.Add(WeightedWord{randomString(32), 1})
+    if err := w.Check(); err != nil {
+      t.Error(err)
+      return
+    }
+  }
+}
+
 // Helpers.
+
+const alpha string = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+
+func randomString(maxLength int32) string {
+  length := 1 + rand.Int31n(maxLength)
+  str := make([]byte, length)
+  for i := range str {
+    str[i] = alpha[rand.Int31n(int32(len(alpha)))]
+  }
+  return string(str)
+}
 
 func wordSetsEqual(a, b WordSet) bool {
 	aWords := a.GetWords()

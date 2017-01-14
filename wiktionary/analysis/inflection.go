@@ -17,9 +17,6 @@ import (
 	"strings"
 )
 
-// TODO: add a test case which passes now, then add more as corner cases
-// are discovered in the data dump
-
 // This is safe to use from multiple goroutines.
 type Inflector struct {
 	// Directory where the Lua files may be found.

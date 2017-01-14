@@ -4,8 +4,6 @@
 
 package dorkalonius
 
-// TODO: fast serialization
-
 import (
   "bytes"
 	"encoding/binary"
@@ -86,10 +84,6 @@ func (self WordSet) Weight() int64 {
 
 func (self *WordSet) Add(word WeightedWord) {
 	self.add(word, false)
-  // TODO:
-  if err := self.Check(); err != nil {
-    log.Fatal(err)
-  }
 }
 
 // Like Add, but requires that the word not already be present in the set.
@@ -150,7 +144,6 @@ func (self WordSet) Sample(n int64, nodeBias int64) WordSet {
 	return sample
 }
 
-// TODO: check that we are doing ToLower in the right places
 func (self WordSet) PrettyPrint() string {
   return prettyPrint(self.root)
 }
@@ -305,63 +298,111 @@ func (self *WordSet) rebalance(path []*node) {
 			log.Fatalf("Imbalance (%d) too large for %q\n%s",
                  abs(i), n.Word.Word, self.PrettyPrint())
 		}
-
-		if imb == 0 {
-			// No imbalance.
+		if abs(imb) < 2 {
+			// Acceptable imbalance.
 			continue
-		}
-		if i == 0 {
-			if imb == 1 || imb == -1 {
-				// We are OK with +-1 imbalance at the root.
-				continue
-			}
-		} else {
-			parent := path[i-1]
-			if n == parent.Left {
-				if imb == -1 {
-					// We are OK with a heaver left subtree for a node which is on the
-					// left side of its parent.
-					continue
-				}
-			} else {
-				if imb == 1 {
-					// We are OK with a heaver right subtree for a node which is on
-					// the right side of its parent.
-					continue
-				}
-			}
 		}
 
 		// Find the pointer used by n's parent to refer to n.
-		var parentPtr **node
+		var nPtr **node
 		if i == 0 {
-			parentPtr = &self.root
+			nPtr = &self.root
 		} else {
 			parent := path[i-1]
 			if parent.Left == n {
-				parentPtr = &parent.Left
+				nPtr = &parent.Left
 			} else {
-				parentPtr = &parent.Right
+				nPtr = &parent.Right
 			}
 		}
+    
+    // Track the set of nodes which need their subtree info recalculated.
+    recalculate := make([]*node, 0)
+    
+    if imb < 0 {
+      // n.Left is too tall.
+      if imbalance(n.Left) < 0 {
+        // We must do an single right rotation.
+        //     n             p
+        //    / \           / \
+        //   p   C   ==>   A   n
+        //  / \               / \
+        // A   B             B   C
+        // (Where A is taller than B).
+        p := n.Left
+        
+        *nPtr = p
+        n.Left = p.Right
+        p.Right = n
+        
+        recalculate = append(recalculate, p)
+      } else {
+        // We must do a left-right rotation.
+        //     n                n              t
+        //    / \              / \            / \
+        //   p   D   ==>      t   D   ==>   p     n
+        //  / \              / \           / \   / \
+        // A   t            p   C         A   B C   D
+        //    / \          / \
+        //   B   C        A   B
+        p := n.Left
+        t := p.Right
 
-		// Perform the rotation.
-		var child *node
-		if imb < 0 {
-			// The left subtree is too tall.
-			child = n.Left
-			n.Left = child.Right
-			child.Right = n
-		} else {
-			// The right subtree is too tall.
-			child = n.Right
-			n.Right = child.Left
-			child.Left = n
-		}
-		*parentPtr = child
+        n.Left = t
+        p.Right = t.Left
+        t.Left = p
+
+        *nPtr = t
+        n.Left = t.Right
+        t.Right = n
+
+        recalculate = append(recalculate, p, t)
+      }
+    } else {
+      // n.Right is too tall.
+      if imbalance(n.Right) < 0 {
+        // We must do a right-left rotation.
+        //     n              n                 t
+        //    / \            / \               / \
+        //   A   p    ==>   A   t      ==>   n     p
+        //      / \            / \          / \   / \
+        //     t   D          B   p        A   B C   D
+        //    / \                / \
+        //   B   C              C   D
+        p := n.Right
+        t := p.Left
+
+        n.Right = t
+        p.Left = t.Right
+        t.Right = p
+
+        *nPtr = t
+        n.Right = t.Left
+        t.Left = n
+
+        recalculate = append(recalculate, p, t)
+      } else {
+        // We must do an single left rotation.
+        //     n               p
+        //    / \             / \
+        //   A   p    ==>    n   C
+        //      / \         / \
+        //     B   C       A   B
+        // (Where C is taller than B).
+        p := n.Right
+        
+        *nPtr = p
+        n.Right = p.Left
+        p.Left = n
+
+        recalculate = append(recalculate, p)
+      }
+    }
 
 		updateSubtreeInfo(n)
-		updateSubtreeInfo(child)
+    for _, p := range recalculate {
+		  updateSubtreeInfo(p)
+    }
 	}
 }
 
@@ -429,16 +470,16 @@ func abs(x int) int {
 func prettyPrint(n *node) string {
   var buf bytes.Buffer
   indent := make([]byte, 0, 64)
-  prettyPrintNode(n, append(indent, []byte("  ")...), &buf)
+  prettyPrintNode(n, "-", append(indent, []byte("  ")...), &buf)
   return buf.String()
 }
 
-func prettyPrintNode(n *node, indent []byte, dest *bytes.Buffer) {
+func prettyPrintNode(n *node, typ string, indent []byte, dest *bytes.Buffer) {
   if n == nil {
-    dest.WriteString("+-> ()\n")
+    dest.WriteString(fmt.Sprintf("+-%s ()\n", typ))
     return
   }
-  dest.WriteString(fmt.Sprintf("+-> %s\n", n.Word.Word))
+  dest.WriteString(fmt.Sprintf("+-%s %s\n", typ, n.Word.Word))
   
   children := make([]*node, 0, 2)
   if n.Left != nil {
@@ -457,7 +498,12 @@ func prettyPrintNode(n *node, indent []byte, dest *bytes.Buffer) {
     } else {
       childIndent = append(indent, []byte("  ")...)
     }
-    prettyPrintNode(child, childIndent, dest)
+    
+    typ := "R"
+    if child == n.Left {
+      typ = "L"
+    }
+    prettyPrintNode(child, typ, childIndent, dest)
   }
 }
 
